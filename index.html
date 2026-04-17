@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="phantom-light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Medical Plan Comparison - Phantom</title>
+  <script>
+    (function() {
+      var stored = localStorage.getItem('phantom-theme');
+      var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      var theme = stored || (prefersDark ? 'phantom-dark' : 'phantom-light');
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style type="text/tailwindcss">
+    @theme {
+      --color-phantom: #5e6ad2;
+      --font-family-sans: 'Inter', system-ui, sans-serif;
+      --font-family-serif: 'Instrument Serif', Georgia, serif;
+      --font-family-mono: 'JetBrains Mono', monospace;
+    }
+    [data-theme="phantom-light"] {
+      --color-base-100: #faf9f5; --color-base-200: #ffffff; --color-base-300: #ece9df;
+      --color-base-content: #1c1917; --color-primary: #4850c4; --color-primary-content: #ffffff;
+      --color-success: #16a34a; --color-warning: #ca8a04; --color-error: #dc2626;
+      --color-info: #2563eb; --radius-box: 14px; color-scheme: light;
+    }
+    [data-theme="phantom-dark"] {
+      --color-base-100: #0b0a09; --color-base-200: #161412; --color-base-300: #26211d;
+      --color-base-content: #f7f6f1; --color-primary: #7078e0; --color-primary-content: #0b0a09;
+      --color-success: #4ade80; --color-warning: #fbbf24; --color-error: #f87171;
+      --color-info: #60a5fa; --radius-box: 14px; color-scheme: dark;
+    }
+  </style>
+  <style>
+    :root {
+      --space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:20px;
+      --space-6:24px;--space-8:32px;--space-10:40px;--space-12:48px;--space-16:64px;
+      --radius-sm:8px;--radius-md:10px;--radius-lg:14px;--radius-pill:9999px;
+      --motion-base:150ms;--motion-slow:300ms;--ease-out:cubic-bezier(0.25,0.46,0.45,0.94);
+    }
+    body { font-family:'Inter',sans-serif; background:var(--color-base-100); color:var(--color-base-content); font-variant-numeric:tabular-nums; -webkit-font-smoothing:antialiased; margin:0; }
+    .page { max-width:1240px; margin:0 auto; padding:var(--space-8); }
+    .page-narrow { max-width:760px; margin:0 auto; padding:var(--space-6) var(--space-8); }
+    h1 { font-family:'Instrument Serif',serif; font-size:32px; font-weight:500; line-height:1.15; margin:0 0 var(--space-3); }
+    h2 { font-family:'Instrument Serif',serif; font-size:22px; font-weight:500; margin:0 0 var(--space-4); }
+    h3 { font-family:'Inter',sans-serif; font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; margin:0 0 var(--space-3); color:var(--color-base-content); opacity:.6; }
+    .eyebrow { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.08em; opacity:.5; margin-bottom:var(--space-2); }
+    .lead { font-size:15px; line-height:1.6; opacity:.75; margin:0; }
+    .card { background:var(--color-base-200); border:1px solid var(--color-base-300); border-radius:var(--radius-lg); padding:var(--space-6); }
+    .card-sm { padding:var(--space-4); }
+    .divider { height:1px; background:var(--color-base-300); border:0; margin:var(--space-8) 0; }
+    .badge { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:var(--radius-pill); font-size:11px; font-weight:600; }
+    .badge-success { background:color-mix(in oklab,var(--color-success) 12%,transparent); color:var(--color-success); }
+    .badge-error { background:color-mix(in oklab,var(--color-error) 12%,transparent); color:var(--color-error); }
+    .badge-warning { background:color-mix(in oklab,var(--color-warning) 12%,transparent); color:var(--color-warning); }
+    .badge-info { background:color-mix(in oklab,var(--color-info) 12%,transparent); color:var(--color-info); }
+    .badge-neutral { background:color-mix(in oklab,var(--color-base-content) 8%,transparent); color:var(--color-base-content); opacity:.8; }
+    .badge-primary { background:color-mix(in oklab,var(--color-primary) 12%,transparent); color:var(--color-primary); }
+    .stat-value { font-size:28px; font-weight:600; line-height:1; font-variant-numeric:tabular-nums; }
+    .stat-label { font-size:12px; opacity:.55; margin-top:4px; }
+    .btn { display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:var(--radius-pill); font-size:13px; font-weight:500; cursor:pointer; border:none; transition:all var(--motion-base) var(--ease-out); }
+    .btn-primary { background:var(--color-primary); color:var(--color-primary-content); }
+    .btn-primary:hover { opacity:.88; }
+    .btn-ghost { background:transparent; color:var(--color-base-content); border:1px solid var(--color-base-300); }
+    .btn-ghost:hover { background:var(--color-base-300); }
+    .btn-sm { padding:5px 12px; font-size:12px; }
+
+    /* Nav */
+    .nav { background:var(--color-base-200); border-bottom:1px solid var(--color-base-300); padding:0 var(--space-8); display:flex; align-items:center; gap:var(--space-4); height:52px; position:sticky; top:0; z-index:10; }
+    .nav-brand { font-family:'Instrument Serif',serif; font-size:17px; font-weight:500; color:var(--color-base-content); text-decoration:none; }
+    .nav-brand span { color:var(--color-primary); }
+
+    /* Alert */
+    .alert { padding:var(--space-4); border-radius:var(--radius-md); font-size:13px; line-height:1.5; display:flex; gap:var(--space-3); align-items:flex-start; }
+    .alert-warning { background:color-mix(in oklab,var(--color-warning) 10%,var(--color-base-200)); border:1px solid color-mix(in oklab,var(--color-warning) 25%,transparent); }
+    .alert-info { background:color-mix(in oklab,var(--color-info) 10%,var(--color-base-200)); border:1px solid color-mix(in oklab,var(--color-info) 25%,transparent); }
+    .alert-success { background:color-mix(in oklab,var(--color-success) 10%,var(--color-base-200)); border:1px solid color-mix(in oklab,var(--color-success) 25%,transparent); }
+
+    /* Table */
+    .tbl-wrap { overflow-x:auto; border:1px solid var(--color-base-300); border-radius:var(--radius-lg); }
+    table { width:100%; border-collapse:collapse; font-size:13px; }
+    thead th { background:var(--color-base-100); padding:10px 14px; text-align:left; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; opacity:.6; border-bottom:1px solid var(--color-base-300); white-space:nowrap; }
+    tbody td { padding:10px 14px; border-bottom:1px solid var(--color-base-300); vertical-align:middle; }
+    tbody tr:last-child td { border-bottom:none; }
+    tbody tr:hover { background:color-mix(in oklab,var(--color-primary) 4%,var(--color-base-200)); }
+    .mono { font-family:'JetBrains Mono',monospace; font-size:12px; }
+    .text-right { text-align:right; }
+    .text-center { text-align:center; }
+
+    /* Rec cards */
+    .rec-card { border:1px solid var(--color-base-300); border-radius:var(--radius-lg); padding:var(--space-5); background:var(--color-base-200); }
+    .rec-card.top-pick { border-color:var(--color-primary); border-width:2px; }
+    .rec-badge { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--color-primary); margin-bottom:var(--space-2); }
+    .rec-name { font-family:'Instrument Serif',serif; font-size:17px; font-weight:500; margin:0 0 var(--space-2); }
+    .rec-price { font-size:22px; font-weight:700; font-variant-numeric:tabular-nums; }
+    .rec-price-label { font-size:11px; opacity:.5; margin-top:2px; }
+    .pros-cons { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-3); margin-top:var(--space-4); }
+    .pros, .cons { font-size:12px; }
+    .pros li, .cons li { padding:3px 0; display:flex; gap:6px; align-items:flex-start; line-height:1.4; }
+    .pros li::before { content:"↑"; color:var(--color-success); flex-shrink:0; font-size:11px; margin-top:2px; }
+    .cons li::before { content:"↓"; color:var(--color-error); flex-shrink:0; font-size:11px; margin-top:2px; }
+    ul.pros, ul.cons { list-style:none; padding:0; margin:4px 0 0; }
+
+    /* Calculator */
+    .calc-grid { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-6); }
+    @media(max-width:780px) { .calc-grid { grid-template-columns:1fr; } .pros-cons { grid-template-columns:1fr; } }
+    .form-row { margin-bottom:var(--space-4); }
+    .form-label { font-size:12px; font-weight:500; margin-bottom:6px; display:block; }
+    .form-input { width:100%; padding:8px 12px; border:1px solid var(--color-base-300); border-radius:var(--radius-md); background:var(--color-base-100); color:var(--color-base-content); font-size:13px; font-family:'Inter',sans-serif; box-sizing:border-box; }
+    .form-input:focus { outline:none; border-color:var(--color-primary); box-shadow:0 0 0 3px color-mix(in oklab,var(--color-primary) 18%,transparent); }
+    .form-select { appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 10px center; padding-right:30px; }
+
+    /* Results */
+    .result-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--color-base-300); font-size:13px; }
+    .result-row:last-child { border-bottom:none; }
+    .result-total { display:flex; justify-content:space-between; align-items:center; padding:12px 0 4px; font-weight:700; font-size:15px; }
+    .result-val { font-family:'JetBrains Mono',monospace; font-size:13px; }
+    .result-total .result-val { font-size:18px; }
+
+    /* Theme toggle */
+    .theme-btn { background:none; border:1px solid var(--color-base-300); border-radius:var(--radius-sm); width:32px; height:32px; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--color-base-content); margin-left:auto; }
+
+    /* Grid layouts */
+    .stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:var(--space-4); }
+    @media(max-width:640px) { .stats-row { grid-template-columns:repeat(2,1fr); } }
+    .rec-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:var(--space-4); }
+
+    /* Sort indicator */
+    th.sortable { cursor:pointer; user-select:none; }
+    th.sortable:hover { opacity:1; }
+    th.sort-asc::after { content:" ↑"; }
+    th.sort-desc::after { content:" ↓"; }
+
+    /* Highlight */
+    .highlight-row { background:color-mix(in oklab,var(--color-primary) 5%,var(--color-base-200)) !important; }
+
+    /* Filter chips */
+    .filter-chip { padding:4px 12px; border-radius:var(--radius-pill); font-size:12px; font-weight:500; border:1px solid var(--color-base-300); background:var(--color-base-200); cursor:pointer; transition:all var(--motion-base) var(--ease-out); }
+    .filter-chip.active { background:var(--color-primary); color:var(--color-primary-content); border-color:var(--color-primary); }
+  </style>
+</head>
+<body>
+
+<!-- ── Password gate ──────────────────────────────────────────────────────── -->
+<div id="pw-gate" style="
+  position:fixed;inset:0;z-index:9999;
+  background:var(--color-base-100);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Inter',sans-serif;
+">
+  <div style="width:100%;max-width:400px;padding:var(--space-8);text-align:center;">
+    <div style="font-family:'Instrument Serif',serif;font-size:13px;letter-spacing:.04em;opacity:.5;text-transform:uppercase;margin-bottom:var(--space-3);">Protected Page</div>
+    <div style="font-family:'Instrument Serif',serif;font-size:28px;font-weight:500;margin-bottom:var(--space-2);">Medical Plan <em style="font-style:italic;">Comparison</em></div>
+    <div style="font-size:13px;opacity:.55;margin-bottom:var(--space-8);line-height:1.5;">Enter the access password to view plan details.</div>
+
+    <form id="pw-form" onsubmit="checkPassword(event)" style="display:flex;flex-direction:column;gap:var(--space-3);">
+      <input
+        id="pw-input"
+        type="password"
+        placeholder="Password"
+        autocomplete="current-password"
+        style="
+          padding:12px 16px;
+          border:1px solid var(--color-base-300);
+          border-radius:var(--radius-md);
+          background:var(--color-base-200);
+          color:var(--color-base-content);
+          font-size:15px;
+          font-family:'Inter',sans-serif;
+          text-align:center;
+          letter-spacing:.08em;
+          box-sizing:border-box;
+          width:100%;
+        "
+      >
+      <div id="pw-error" style="font-size:12px;color:var(--color-error);min-height:18px;"></div>
+      <button type="submit" style="
+        padding:12px;
+        background:var(--color-primary);
+        color:var(--color-primary-content);
+        border:none;
+        border-radius:var(--radius-pill);
+        font-size:14px;
+        font-weight:500;
+        font-family:'Inter',sans-serif;
+        cursor:pointer;
+        letter-spacing:.01em;
+      ">View Plans</button>
+    </form>
+
+    <div style="margin-top:var(--space-8);font-size:11px;opacity:.3;">Aetna via Justworks &nbsp;·&nbsp; 2026</div>
+  </div>
+</div>
+<!-- ── End password gate ──────────────────────────────────────────────────── -->
+
+<nav class="nav">
+  <a class="nav-brand" href="#">Medical Plan <span>Comparison</span></a>
+  <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+    <span style="font-size:12px;opacity:.5;">Aetna via Justworks — 2026</span>
+    <button class="theme-btn" onclick="toggleTheme()" title="Toggle theme">
+      <svg id="theme-icon-sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+      <svg id="theme-icon-moon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+  </div>
+</nav>
+
+<main>
+<div class="page">
+
+  <!-- Hero -->
+  <div style="padding:var(--space-10) 0 var(--space-8);">
+    <div class="eyebrow">Health Insurance Analysis</div>
+    <h1>Medical Plan <em style="font-style:italic;">Comparison</em></h1>
+    <p class="lead" style="max-width:620px;">30 Aetna plans analyzed for your situation: family of 3, two-state coverage, regular visits, no chronic conditions. 14 plans eliminated. 16 viable options ranked by cost and coverage fit.</p>
+  </div>
+
+  <!-- Situation stats -->
+  <div class="stats-row" style="margin-bottom:var(--space-8);">
+    <div class="card card-sm">
+      <div class="stat-label">Family Size</div>
+      <div class="stat-value" style="font-size:22px;">3</div>
+      <div style="font-size:11px;opacity:.5;margin-top:4px;">Employee + 2</div>
+    </div>
+    <div class="card card-sm">
+      <div class="stat-label">States</div>
+      <div class="stat-value" style="font-size:22px;">2</div>
+      <div style="font-size:11px;opacity:.5;margin-top:4px;">Needs OON coverage</div>
+    </div>
+    <div class="card card-sm">
+      <div class="stat-label">Total Plans</div>
+      <div class="stat-value" style="font-size:22px;">30</div>
+      <div style="font-size:11px;opacity:.5;margin-top:4px;">All Aetna via Justworks</div>
+    </div>
+    <div class="card card-sm">
+      <div class="stat-label">Eligible Plans</div>
+      <div class="stat-value" style="font-size:22px;color:var(--color-success);">16</div>
+      <div style="font-size:11px;opacity:.5;margin-top:4px;">With OON coverage</div>
+    </div>
+  </div>
+
+  <!-- Elimination alert -->
+  <div class="alert alert-warning" style="margin-bottom:var(--space-6);">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px;color:var(--color-warning)"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    <div><strong>14 plans eliminated for two-state coverage:</strong> 8 EPO plans (B3, B4, B5, C2, C5, D1, D2, D3) and 5 HMO plans (CA1–CA5) plus 1 EPO (J1) have no out-of-network coverage. If you receive care in your second state outside their network, you pay 100% of costs. These are removed from analysis.</div>
+  </div>
+
+  <!-- Key insight -->
+  <div class="alert alert-info" style="margin-bottom:var(--space-8);">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px;color:var(--color-info)"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <div><strong>For a healthy family of 3 with regular visits and no chronic conditions:</strong> HDHPs paired with an HSA are often the best fit. Lower premiums free up cash, and the tax-advantaged HSA builds a medical reserve. The 5 HSA-compatible plans on this list (C3, G2, F4, H2, K2) deserve serious consideration.</div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Top Recommendations -->
+  <div class="phantom-section">
+    <h2>Top Recommendations for Your Situation</h2>
+    <p class="lead" style="margin-bottom:var(--space-6);">Ranked by value for family of 3, two-state, regular visits, no chronic illness.</p>
+
+    <div class="rec-grid">
+
+      <!-- H2 -->
+      <div class="rec-card top-pick">
+        <div class="rec-badge">Best Value HDHP</div>
+        <div class="rec-name">AET OAMC HDHP 6350/100%</div>
+        <div style="display:flex;gap:8px;margin-bottom:var(--space-3);flex-wrap:wrap;">
+          <span class="badge badge-primary">HSA Compatible</span>
+          <span class="badge badge-info">POS / OON</span>
+          <span class="badge badge-neutral">Code H2</span>
+        </div>
+        <div class="rec-price">$2,068<span style="font-size:14px;font-weight:400;opacity:.6;">/mo</span></div>
+        <div class="rec-price-label">Family premium (lowest of all eligible plans)</div>
+        <div style="margin-top:var(--space-3);font-size:12px;display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;">
+          <span style="opacity:.6;">Deductible</span><span class="mono">$6,350 / $12,700 fam</span>
+          <span style="opacity:.6;">After ded</span><span class="mono">100% covered</span>
+          <span style="opacity:.6;">OOP Max</span><span class="mono">$6,350 / $12,700 fam</span>
+          <span style="opacity:.6;">OON Ded</span><span class="mono">$14,000 / $28,000</span>
+        </div>
+        <div class="pros-cons">
+          <div>
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--color-success);margin-bottom:4px;">Advantages</div>
+            <ul class="pros">
+              <li>Lowest monthly premium saves ~$400/mo vs F1</li>
+              <li>100% covered after deductible — no coinsurance surprise</li>
+              <li>HSA contributions reduce taxable income</li>
+              <li>POS with OON — both states covered</li>
+            </ul>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--color-error);margin-bottom:4px;">Disadvantages</div>
+            <ul class="cons">
+              <li>High $6,350 deductible before any coverage kicks in</li>
+              <li>All Rx subject to deductible (no flat copays)</li>
+              <li>Regular visits cost full price until deductible met</li>
+            </ul>
+          </div>
+        </div>
+        <div style="margin-top:var(--space-4);padding:var(--space-3);background:color-mix(in oklab,var(--color-primary) 6%,var(--color-base-100));border-radius:var(--radius-md);font-size:12px;line-height:1.5;">
+          <strong>Best fit when:</strong> Your family stays healthy most years. Save the premium difference in an HSA (~$4,800/yr) and it covers your deductible in year 1.
+        </div>
+      </div>
+
+      <!-- G2 -->
+      <div class="rec-card top-pick">
+        <div class="rec-badge">Best Balanced HDHP</div>
+        <div class="rec-name">AET OAMC HDHP 3300/90%</div>
+        <div style="display:flex;gap:8px;margin-bottom:var(--space-3);flex-wrap:wrap;">
+          <span class="badge badge-primary">HSA Compatible</span>
+          <span class="badge badge-info">POS/PPO / OON</span>
+          <span class="badge badge-neutral">Code G2</span>
+        </div>
+        <div class="rec-price">$2,389<span style="font-size:14px;font-weight:400;opacity:.6;">/mo</span></div>
+        <div class="rec-price-label">Family POS premium</div>
+        <div style="margin-top:var(--space-3);font-size:12px;display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;">
+          <span style="opacity:.6;">Deductible</span><span class="mono">$3,300 / $6,600 fam</span>
+          <span style="opacity:.6;">Coinsurance</span><span class="mono">10% after ded</span>
+          <span style="opacity:.6;">OOP Max</span><span class="mono">$5,500 / $11,000 fam</span>
+          <span style="opacity:.6;">OON Ded</span><span class="mono">$6,000 / $12,000</span>
+        </div>
+        <div class="pros-cons">
+          <div>
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--color-success);margin-bottom:4px;">Advantages</div>
+            <ul class="pros">
+              <li>Half the deductible of H2 — easier to reach</li>
+              <li>HSA compatible, tax savings apply</li>
+              <li>POS/PPO offers broadest network choice</li>
+              <li>10% coinsurance is low exposure after deductible</li>
+            </ul>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--color-error);margin-bottom:4px;">Disadvantages</div>
+            <ul class="cons">
+              <li>Still no copays until $3,300 deductible met</li>
+              <li>~$320/mo more than H2 for lower deductible</li>
+              <li>10% coinsurance adds up on large claims</li>
+            </ul>
+          </div>
+        </div>
+        <div style="margin-top:var(--space-4);padding:var(--space-3);background:color-mix(in oklab,var(--color-primary) 6%,var(--color-base-100));border-radius:var(--radius-md);font-size:12px;line-height:1.5;">
+          <strong>Best fit when:</strong> You want HDHP tax benefits but are uncomfortable with a $6,350 deductible. Good middle ground.
+        </div>
+      </div>
+
+      <!-- G1 -->
+      <div class="rec-card">
+        <div class="rec-badge">Best Traditional PPO</div>
+        <div class="rec-name">AET OAMC 30/60 2000/80%</div>
+        <div style="display:flex;gap:8px;margin-bottom:var(--space-3);flex-wrap:wrap;">
+          <span class="badge badge-neutral">No HSA</span>
+          <span class="badge badge-info">POS/PPO / OON</span>
+          <span class="badge badge-neutral">Code G1</span>
+        </div>
+        <div class="rec-price">$3,032<span style="font-size:14px;font-weight:400;opacity:.6;">/mo</span></div>
+        <div class="rec-price-label">Family POS premium</div>
+        <div style="margin-top:var(--space-3);font-size:12px;display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;">
+          <span style="opacity:.6;">Deductible</span><span class="mono">$2,000 / $4,000 fam</span>
+          <span style="opacity:.6;">PCP Copay</span><span class="mono">$30</span>
+          <span style="opacity:.6;">Specialist</span><span class="mono">$60</span>
+          <span style="opacity:.6;">OOP Max</span><span class="mono">$6,850 / $13,700 fam</span>
+        </div>
+        <div class="pros-cons">
+          <div>
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--color-success);margin-bottom:4px;">Advantages</div>
+            <ul class="pros">
+              <li>Flat copays from day 1 — visits are predictable</li>
+              <li>$2,000 deductible is reasonable for a family</li>
+              <li>80% coinsurance after deductible</li>
+              <li>POS/PPO, OON covered</li>
+            </ul>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--color-error);margin-bottom:4px;">Disadvantages</div>
+            <ul class="cons">
+              <li>~$960/mo more than H2 in annual premiums</li>
+              <li>No HSA tax benefit</li>
+              <li>20% coinsurance on hospital stays adds up</li>
+            </ul>
+          </div>
+        </div>
+        <div style="margin-top:var(--space-4);padding:var(--space-3);background:color-mix(in oklab,var(--color-base-content) 4%,var(--color-base-100));border-radius:var(--radius-md);font-size:12px;line-height:1.5;">
+          <strong>Best fit when:</strong> You value predictable copays and dislike HDHP front-loaded costs. Comfort over optimization.
+        </div>
+      </div>
+
+      <!-- C3 -->
+      <div class="rec-card">
+        <div class="rec-badge">Best NY-Based HDHP</div>
+        <div class="rec-name">AET NYOA HDHP 3300/100%</div>
+        <div style="display:flex;gap:8px;margin-bottom:var(--space-3);flex-wrap:wrap;">
+          <span class="badge badge-primary">HSA Compatible</span>
+          <span class="badge badge-info">POS/PPO / OON</span>
+          <span class="badge badge-neutral">Code C3</span>
+        </div>
+        <div class="rec-price">$2,757<span style="font-size:14px;font-weight:400;opacity:.6;">/mo</span></div>
+        <div class="rec-price-label">Family POS premium</div>
+        <div style="margin-top:var(--space-3);font-size:12px;display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;">
+          <span style="opacity:.6;">Deductible</span><span class="mono">$3,300 / $6,600 fam</span>
+          <span style="opacity:.6;">After ded</span><span class="mono">100% covered</span>
+          <span style="opacity:.6;">OOP Max</span><span class="mono">$6,500 / $13,000</span>
+          <span style="opacity:.6;">OON Ded</span><span class="mono">$6,000 / $12,000</span>
+        </div>
+        <div class="pros-cons">
+          <div>
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--color-success);margin-bottom:4px;">Advantages</div>
+            <ul class="pros">
+              <li>100% covered after deductible — no coinsurance</li>
+              <li>HSA compatible</li>
+              <li>NYOA network — strong NY-area coverage</li>
+            </ul>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--color-error);margin-bottom:4px;">Disadvantages</div>
+            <ul class="cons">
+              <li>$370/mo more than H2 for same $3,300 deductible</li>
+              <li>Same deductible structure as G2 but higher premium</li>
+            </ul>
+          </div>
+        </div>
+        <div style="margin-top:var(--space-4);padding:var(--space-3);background:color-mix(in oklab,var(--color-base-content) 4%,var(--color-base-100));border-radius:var(--radius-md);font-size:12px;line-height:1.5;">
+          <strong>Best fit when:</strong> One of your states is NY and you want the NYOA network specifically.
+        </div>
+      </div>
+
+      <!-- H3 -->
+      <div class="rec-card">
+        <div class="rec-badge">Lowest Premium Option</div>
+        <div class="rec-name">AET OAMC VAL 25 6350/100%</div>
+        <div style="display:flex;gap:8px;margin-bottom:var(--space-3);flex-wrap:wrap;">
+          <span class="badge badge-neutral">No HSA</span>
+          <span class="badge badge-info">POS/PPO / OON</span>
+          <span class="badge badge-neutral">Code H3</span>
+        </div>
+        <div class="rec-price">$2,131<span style="font-size:14px;font-weight:400;opacity:.6;">/mo</span></div>
+        <div class="rec-price-label">Family POS premium</div>
+        <div style="margin-top:var(--space-3);font-size:12px;display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;">
+          <span style="opacity:.6;">Deductible</span><span class="mono">$6,350 / $12,700 fam</span>
+          <span style="opacity:.6;">PCP Copay</span><span class="mono">$25 (after ded on some)</span>
+          <span style="opacity:.6;">After ded</span><span class="mono">100% covered</span>
+          <span style="opacity:.6;">OOP Max</span><span class="mono">$7,500 / $15,000</span>
+        </div>
+        <div class="pros-cons">
+          <div>
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--color-success);margin-bottom:4px;">Advantages</div>
+            <ul class="pros">
+              <li>Lowest premium of POS/PPO eligible plans</li>
+              <li>$25 PCP copay available before deductible</li>
+              <li>100% covered after deductible</li>
+            </ul>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--color-error);margin-bottom:4px;">Disadvantages</div>
+            <ul class="cons">
+              <li>Not HSA-compatible despite high deductible</li>
+              <li>Very high OOP max ($15,000 family)</li>
+              <li>High OON deductible ($14,000 / $28,000)</li>
+            </ul>
+          </div>
+        </div>
+        <div style="margin-top:var(--space-4);padding:var(--space-3);background:color-mix(in oklab,var(--color-base-content) 4%,var(--color-base-100));border-radius:var(--radius-md);font-size:12px;line-height:1.5;">
+          <strong>Caution:</strong> No HSA benefit despite high deductible. H2 has lower premium AND HSA eligibility — H3 is rarely the better choice unless the copay structure matters to you.
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Full comparison table -->
+  <div class="phantom-section">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-4);flex-wrap:wrap;gap:var(--space-3);">
+      <h2 style="margin:0;">All 16 Eligible Plans</h2>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="filter-chip active" onclick="filterPlans('all',this)">All</button>
+        <button class="filter-chip" onclick="filterPlans('hsa',this)">HSA Compatible</button>
+        <button class="filter-chip" onclick="filterPlans('low-ded',this)">Low Deductible</button>
+        <button class="filter-chip" onclick="filterPlans('low-prem',this)">Lowest Premium</button>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table id="plan-table">
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Plan Name</th>
+            <th>Network</th>
+            <th class="text-center">HSA</th>
+            <th class="sortable" onclick="sortTable('ded')" id="th-ded">Indiv. Deductible</th>
+            <th>Fam. Deductible</th>
+            <th>Coinsurance</th>
+            <th>PCP Copay</th>
+            <th>Spec. Copay</th>
+            <th class="sortable" onclick="sortTable('prem')" id="th-prem">Family Premium/mo</th>
+            <th>OOP Max (Fam)</th>
+            <th>Rx Deductible</th>
+            <th class="sortable" onclick="sortTable('rxgen')" id="th-rxgen">Generic Rx</th>
+            <th>Brand Rx</th>
+            <th>Non-Form. Rx</th>
+            <th>Mail Order</th>
+          </tr>
+        </thead>
+        <tbody id="plan-tbody"></tbody>
+      </table>
+    </div>
+    <div style="font-size:11px;opacity:.5;margin-top:var(--space-3);">* POS/PPO plans show POS premium. Click column headers to sort. "after ded" means copay applies only after deductible is met (common on HDHP plans).</div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Cost Calculator -->
+  <div class="phantom-section">
+    <h2>Annual Cost Calculator</h2>
+    <p class="lead" style="margin-bottom:var(--space-6);">Estimate your real total cost — premiums plus expected out-of-pocket spending — for any plan. Based on your expected usage.</p>
+
+    <div class="calc-grid">
+      <!-- Inputs -->
+      <div>
+        <div class="card">
+          <h3>Your Situation</h3>
+
+          <div class="form-row">
+            <label class="form-label">Plan</label>
+            <select class="form-input form-select" id="calc-plan" onchange="calculate()"></select>
+          </div>
+
+          <div class="form-row">
+            <label class="form-label">Coverage Tier</label>
+            <select class="form-input form-select" id="calc-tier" onchange="calculate()">
+              <option value="emp">Employee Only</option>
+              <option value="emp_spouse">Employee + Spouse</option>
+              <option value="emp_children" selected>Employee + Children</option>
+              <option value="family">Family</option>
+            </select>
+          </div>
+
+          <hr class="divider" style="margin:var(--space-4) 0;">
+          <h3>Expected Annual Usage</h3>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4);">
+            <div class="form-row" style="margin-bottom:0;">
+              <label class="form-label">PCP Visits / yr</label>
+              <input type="number" class="form-input" id="calc-pcp" value="6" min="0" max="52" oninput="calculate()">
+            </div>
+            <div class="form-row" style="margin-bottom:0;">
+              <label class="form-label">Specialist Visits / yr</label>
+              <input type="number" class="form-input" id="calc-spec" value="4" min="0" max="52" oninput="calculate()">
+            </div>
+            <div class="form-row" style="margin-bottom:0;">
+              <label class="form-label">Urgent Care / yr</label>
+              <input type="number" class="form-input" id="calc-uc" value="2" min="0" max="20" oninput="calculate()">
+            </div>
+            <div class="form-row" style="margin-bottom:0;">
+              <label class="form-label">ER Visits / yr</label>
+              <input type="number" class="form-input" id="calc-er" value="0" min="0" max="10" oninput="calculate()">
+            </div>
+            <div class="form-row" style="margin-bottom:0;">
+              <label class="form-label">Generic Rx / mo</label>
+              <input type="number" class="form-input" id="calc-rx-gen" value="2" min="0" max="20" oninput="calculate()">
+            </div>
+            <div class="form-row" style="margin-bottom:0;">
+              <label class="form-label">Brand Rx / mo</label>
+              <input type="number" class="form-input" id="calc-rx-brand" value="0" min="0" max="10" oninput="calculate()">
+            </div>
+            <div class="form-row" style="margin-bottom:0;">
+              <label class="form-label">Non-Formulary Rx / mo</label>
+              <input type="number" class="form-input" id="calc-rx-nf" value="0" min="0" max="10" oninput="calculate()">
+            </div>
+          </div>
+          <div style="margin-top:var(--space-3);font-size:11px;opacity:.5;line-height:1.5;">Mail order (90-day supply) = 2x the copay shown above, saving one fill vs. 3 retail fills.</div>
+
+          <div class="form-row" style="margin-top:var(--space-4);margin-bottom:0;">
+            <label class="form-label">Lab / Imaging Visits / yr</label>
+            <input type="number" class="form-input" id="calc-lab" value="2" min="0" max="20" oninput="calculate()">
+          </div>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div>
+        <div class="card" id="calc-results">
+          <h3>Cost Breakdown</h3>
+          <div id="calc-plan-name" style="font-family:'Instrument Serif',serif;font-size:18px;margin-bottom:var(--space-4);line-height:1.3;"></div>
+
+          <div id="calc-output">
+            <div style="opacity:.5;font-size:13px;">Select a plan to see your estimate.</div>
+          </div>
+        </div>
+
+        <!-- Compare top 3 -->
+        <div class="card" style="margin-top:var(--space-4);">
+          <h3>Quick Compare — Top 3 by Total Cost</h3>
+          <div id="top3-output" style="font-size:13px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer note -->
+  <div style="padding:var(--space-8) 0;opacity:.45;font-size:12px;line-height:1.6;border-top:1px solid var(--color-base-300);margin-top:var(--space-8);">
+    Estimates are based on the plan data provided and simplified cost modeling. Actual costs depend on specific services rendered, negotiated rates, and provider network status. Consult plan documents for definitive coverage details. Premium data from Justworks Aetna 2026 rates.
+  </div>
+
+</div>
+</main>
+
+<script>
+// ── Plan data ─────────────────────────────────────────────────────────────────
+const PLANS = [
+  { code:'C3',  name:'AET NYOA HDHP 3300/100%',       net:'POS/PPO', hsa:true,  ded:3300,  famDed:6600,  coin:0,  pcpRaw:'30 after ded', specRaw:'45 after ded', ucRaw:'75 after ded', erRaw:'400 after ded', oopInd:6500,  oopFam:13000, rxGen:10,  rxBrand:55,  rxNF:100, rxDed:true,  hdphp:true,  prem:{emp:902.15, emp_spouse:2050.14, emp_children:1785.22, family:2756.59} },
+  { code:'F1',  name:'AET OAMC 25/50 750/90%',        net:'POS/PPO', hsa:false, ded:750,   famDed:1500,  coin:10, pcpRaw:'$25',          specRaw:'$50',           ucRaw:'$85',          erRaw:'$350',          oopInd:4000,  oopFam:8000,  rxGen:10,  rxBrand:45,  rxNF:70,  rxDed:false, hdphp:false, prem:{emp:1230.28, emp_spouse:2804.84, emp_children:2441.48, family:3773.81} },
+  { code:'F3',  name:'AET OAMC 25/50 1000/80%',       net:'POS/PPO', hsa:false, ded:1000,  famDed:2000,  coin:20, pcpRaw:'$25',          specRaw:'$50',           ucRaw:'$85',          erRaw:'$350',          oopInd:4500,  oopFam:9000,  rxGen:10,  rxBrand:45,  rxNF:70,  rxDed:false, hdphp:false, prem:{emp:1101.67, emp_spouse:2509.04, emp_children:2184.26, family:3375.11} },
+  { code:'G1',  name:'AET OAMC 30/60 2000/80%',       net:'POS/PPO', hsa:false, ded:2000,  famDed:4000,  coin:20, pcpRaw:'$30',          specRaw:'$60',           ucRaw:'$85',          erRaw:'$350',          oopInd:6850,  oopFam:13700, rxGen:10,  rxBrand:45,  rxNF:70,  rxDed:false, hdphp:false, prem:{emp:991.03,  emp_spouse:2254.56, emp_children:1962.98, family:3032.12} },
+  { code:'G2',  name:'AET OAMC HDHP 3300/90%',        net:'POS/PPO', hsa:true,  ded:3300,  famDed:6600,  coin:10, pcpRaw:'10% after ded',specRaw:'10% after ded', ucRaw:'10% after ded',erRaw:'10% after ded', oopInd:5500,  oopFam:11000, rxGen:10,  rxBrand:45,  rxNF:70,  rxDed:true,  hdphp:true,  prem:{emp:783.71,  emp_spouse:1777.74, emp_children:1548.35, family:2389.44} },
+  { code:'H3',  name:'AET OAMC VAL 25 6350/100%',     net:'POS/PPO', hsa:false, ded:6350,  famDed:12700, coin:0,  pcpRaw:'$25',          specRaw:'$0 after ded',  ucRaw:'$0 after ded', erRaw:'$0 after ded',  oopInd:7500,  oopFam:15000, rxGen:15,  rxBrand:55,  rxNF:90,  rxDed:false, hdphp:false, prem:{emp:700.35,  emp_spouse:1586.01, emp_children:1381.63, family:2131.03} },
+  { code:'A8',  name:'AET OAMC 40/80 5000/70%',       net:'POS',     hsa:false, ded:5000,  famDed:10000, coin:30, pcpRaw:'$40',          specRaw:'$80',           ucRaw:'$85',          erRaw:'$500',          oopInd:7600,  oopFam:15200, rxGen:15,  rxBrand:55,  rxNF:90,  rxDed:false, hdphp:false, prem:{emp:849.21,  emp_spouse:1928.38, emp_children:1679.34, family:2592.48} },
+  { code:'F2',  name:'AET OAMC 25/50 500/80%',        net:'POS',     hsa:false, ded:500,   famDed:1000,  coin:20, pcpRaw:'$25',          specRaw:'$50',           ucRaw:'$85',          erRaw:'$350',          oopInd:3500,  oopFam:7000,  rxGen:10,  rxBrand:45,  rxNF:70,  rxDed:false, hdphp:false, prem:{emp:1245.76, emp_spouse:2840.45, emp_children:2472.45, family:3821.80} },
+  { code:'F4',  name:'AET NYOA HDHPT 1650/100%',      net:'POS',     hsa:true,  ded:1650,  famDed:3300,  coin:0,  pcpRaw:'30 after ded', specRaw:'45 after ded',  ucRaw:'75 after ded', erRaw:'400 after ded', oopInd:3000,  oopFam:6000,  rxGen:10,  rxBrand:55,  rxNF:100, rxDed:true,  hdphp:true,  prem:{emp:1013.66, emp_spouse:2306.60, emp_children:2008.23, family:3102.26} },
+  { code:'G4',  name:'AET OAMC 25/50 1500/90%',       net:'POS',     hsa:false, ded:1500,  famDed:3000,  coin:10, pcpRaw:'$25',          specRaw:'$50',           ucRaw:'$85',          erRaw:'$350',          oopInd:5500,  oopFam:11000, rxGen:10,  rxBrand:45,  rxNF:70,  rxDed:false, hdphp:false, prem:{emp:1070.38, emp_spouse:2437.08, emp_children:2121.69, family:3278.12} },
+  { code:'G5',  name:'AET OAMC 30/60 2000/100%',      net:'POS',     hsa:false, ded:2000,  famDed:4000,  coin:0,  pcpRaw:'$30',          specRaw:'$60',           ucRaw:'$85',          erRaw:'$350',          oopInd:5500,  oopFam:11000, rxGen:10,  rxBrand:45,  rxNF:70,  rxDed:false, hdphp:false, prem:{emp:1109.90, emp_spouse:2527.96, emp_children:2200.72, family:3400.62} },
+  { code:'G6',  name:'AET OAMC 30/60 3000/100%',      net:'POS',     hsa:false, ded:3000,  famDed:6000,  coin:0,  pcpRaw:'$30',          specRaw:'$60',           ucRaw:'$85',          erRaw:'$350',          oopInd:5500,  oopFam:11000, rxGen:10,  rxBrand:45,  rxNF:70,  rxDed:false, hdphp:false, prem:{emp:980.53,  emp_spouse:2230.41, emp_children:1941.98, family:2999.57} },
+  { code:'H1',  name:'AET OAMC 30/60 4000/80%',       net:'POS',     hsa:false, ded:4000,  famDed:8000,  coin:20, pcpRaw:'$30',          specRaw:'$60',           ucRaw:'$85',          erRaw:'$350',          oopInd:6850,  oopFam:13700, rxGen:10,  rxBrand:45,  rxNF:70,  rxDed:false, hdphp:false, prem:{emp:906.37,  emp_spouse:2059.85, emp_children:1793.66, family:2769.68} },
+  { code:'H2',  name:'AET OAMC HDHP 6350/100%',       net:'POS',     hsa:true,  ded:6350,  famDed:12700, coin:0,  pcpRaw:'$0 after ded', specRaw:'$0 after ded',  ucRaw:'$0 after ded', erRaw:'$0 after ded',  oopInd:6350,  oopFam:12700, rxGen:0,   rxBrand:0,   rxNF:0,   rxDed:true,  hdphp:true,  prem:{emp:679.89,  emp_spouse:1538.95, emp_children:1340.71, family:2067.60} },
+  { code:'K1',  name:'AET NYOA 15/40 250/100%',        net:'POS',     hsa:false, ded:250,   famDed:500,   coin:0,  pcpRaw:'$15',          specRaw:'$40',           ucRaw:'$75',          erRaw:'$300',          oopInd:1750,  oopFam:3500,  rxGen:10,  rxBrand:55,  rxNF:100, rxDed:false, hdphp:false, prem:{emp:1550.95, emp_spouse:3542.37, emp_children:3082.81, family:4767.86} },
+  { code:'K2',  name:'AET NYOA HDHPT 2500/100%',       net:'POS',     hsa:true,  ded:2500,  famDed:5000,  coin:0,  pcpRaw:'30 after ded', specRaw:'60 after ded',  ucRaw:'85 after ded', erRaw:'350 after ded', oopInd:3500,  oopFam:7000,  rxGen:10,  rxBrand:55,  rxNF:100, rxDed:true,  hdphp:true,  prem:{emp:1005.75, emp_spouse:2288.43, emp_children:1992.43, family:3077.77} },
+];
+
+// ── Table rendering ────────────────────────────────────────────────────────────
+let sortCol = null, sortDir = 1;
+let activeFilter = 'all';
+
+function fmt(n) { return '$'+n.toLocaleString(); }
+
+function renderTable() {
+  let data = [...PLANS];
+  if (activeFilter === 'hsa') data = data.filter(p => p.hsa);
+  if (activeFilter === 'low-ded') data = data.filter(p => p.ded <= 2000);
+  if (activeFilter === 'low-prem') data = data.sort((a,b)=>a.prem.family-b.prem.family).slice(0,6);
+  if (sortCol === 'ded') data.sort((a,b)=>(a.ded-b.ded)*sortDir);
+  if (sortCol === 'prem') data.sort((a,b)=>(a.prem.family-b.prem.family)*sortDir);
+  if (sortCol === 'rxgen') data.sort((a,b)=>(a.rxGen-b.rxGen)*sortDir);
+
+  const tbody = document.getElementById('plan-tbody');
+  tbody.innerHTML = data.map(p => {
+    const isTop = ['H2','G2','C3'].includes(p.code);
+    return `<tr class="${isTop?'highlight-row':''}">
+      <td><span class="mono" style="font-weight:600;">${p.code}</span></td>
+      <td style="max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name.replace('AET ','').replace(' JNY','')}</td>
+      <td><span class="badge badge-neutral">${p.net}</span></td>
+      <td class="text-center">${p.hsa ? '<span class="badge badge-success">HSA</span>' : '<span style="opacity:.3;">—</span>'}</td>
+      <td class="mono">${fmt(p.ded)}</td>
+      <td class="mono">${fmt(p.famDed)}</td>
+      <td class="mono">${p.coin}%</td>
+      <td style="font-size:12px;">${p.pcpRaw}</td>
+      <td style="font-size:12px;">${p.specRaw}</td>
+      <td class="mono" style="font-weight:600;">${fmt(p.prem.family)}</td>
+      <td class="mono">${fmt(p.oopFam)}</td>
+      <td>${p.rxDed ? '<span class="badge badge-warning" style="font-size:10px;">Med ded first</span>' : '<span style="opacity:.4;font-size:12px;">None</span>'}</td>
+      <td class="mono" style="white-space:nowrap;">${p.rxDed ? (p.rxGen===0 ? '<span style="opacity:.6;font-size:11px;">$0 after ded</span>' : `<span style="opacity:.7;font-size:11px;">$${p.rxGen} after ded</span>`) : `$${p.rxGen}`}</td>
+      <td class="mono" style="white-space:nowrap;">${p.rxDed ? (p.rxBrand===0 ? '<span style="opacity:.6;font-size:11px;">$0 after ded</span>' : `<span style="opacity:.7;font-size:11px;">$${p.rxBrand} after ded</span>`) : `$${p.rxBrand}`}</td>
+      <td class="mono" style="white-space:nowrap;">${p.rxDed ? (p.rxNF===0 ? '<span style="opacity:.6;font-size:11px;">$0 after ded</span>' : `<span style="opacity:.7;font-size:11px;">$${p.rxNF} after ded</span>`) : `$${p.rxNF}`}</td>
+      <td style="font-size:11px;opacity:.6;white-space:nowrap;">2x copay<br><span style="opacity:.7;">90-day supply</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function sortTable(col) {
+  if (sortCol === col) sortDir *= -1; else { sortCol = col; sortDir = 1; }
+  document.querySelectorAll('th.sortable').forEach(th => th.classList.remove('sort-asc','sort-desc'));
+  const th = document.getElementById('th-'+col);
+  th.classList.add(sortDir===1?'sort-asc':'sort-desc');
+  renderTable();
+}
+
+function filterPlans(f, el) {
+  activeFilter = f;
+  document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  sortCol = null; sortDir = 1;
+  document.querySelectorAll('th.sortable').forEach(th=>th.classList.remove('sort-asc','sort-desc'));
+  renderTable();
+}
+
+// ── Calculator ─────────────────────────────────────────────────────────────────
+function parseCopay(raw) {
+  // Returns {amount, afterDed}
+  if (!raw) return {amount:0, afterDed:false};
+  const r = raw.toString().toLowerCase();
+  const afterDed = r.includes('after ded');
+  const pct = r.match(/(\d+)%/);
+  if (pct) return {amount: parseInt(pct[1]), isPct: true, afterDed};
+  const dollar = r.match(/\$?(\d+)/);
+  if (dollar) return {amount: parseInt(dollar[1]), isPct: false, afterDed};
+  return {amount:0, afterDed:false};
+}
+
+function estimateCost(plan, tier, usage) {
+  const annualPremium = plan.prem[tier] * 12;
+  const { pcp, spec, uc, er, rxGen, rxBrand, rxNF, lab } = usage;
+
+  // For HDHP: all costs go toward deductible first, then coinsurance/copay
+  // For non-HDHP: copays apply immediately; deductible mainly for hospital/facility
+  const famDed = plan.famDed;
+  const famOop = plan.oopFam;
+  const coin = plan.coin / 100;
+
+  let medicalCosts = 0;
+
+  if (plan.hdphp) {
+    // Estimate raw medical costs (avg allowable amounts)
+    const pcpCost = pcp * 180;
+    const specCost = spec * 320;
+    const ucCost = uc * 220;
+    const erCost = er * 1800;
+    const rxGenCost = rxGen * 12 * 35;
+    const rxBrandCost = rxBrand * 12 * 180;
+    const rxNFCost = rxNF * 12 * 280;
+    const labCost = lab * 150;
+    const totalMedical = pcpCost + specCost + ucCost + erCost + rxGenCost + rxBrandCost + rxNFCost + labCost;
+
+    if (totalMedical <= famDed) {
+      medicalCosts = totalMedical; // pay full until deductible
+    } else {
+      medicalCosts = famDed + (totalMedical - famDed) * coin;
+    }
+    medicalCosts = Math.min(medicalCosts, famOop);
+  } else {
+    // Copay-based plans
+    const pcpInfo = parseCopay(plan.pcpRaw);
+    const specInfo = parseCopay(plan.specRaw);
+    const ucInfo = parseCopay(plan.ucRaw);
+    const erInfo = parseCopay(plan.erRaw);
+
+    const pcpCopay = pcpInfo.isPct ? 180 * (pcpInfo.amount/100) : pcpInfo.amount;
+    const specCopay = specInfo.isPct ? 320 * (specInfo.amount/100) : specInfo.amount;
+    const ucCopay = ucInfo.isPct ? 220 * (ucInfo.amount/100) : ucInfo.amount;
+    const erCopay = erInfo.isPct ? 1800 * (erInfo.amount/100) : erInfo.amount;
+
+    const copayTotal = pcp*pcpCopay + spec*specCopay + uc*ucCopay + er*erCopay;
+    const rxTotal = rxGen*12*plan.rxGen + rxBrand*12*plan.rxBrand + rxNF*12*plan.rxNF;
+    const labTotal = lab * (plan.coin > 0 ? 30 + 150*coin : 30);
+
+    // Deductible applies to facility/surgery costs; for regular visits just copays
+    medicalCosts = copayTotal + rxTotal + labTotal;
+    medicalCosts = Math.min(medicalCosts, famOop);
+  }
+
+  return { annualPremium, medicalCosts, total: annualPremium + medicalCosts };
+}
+
+function calculate() {
+  const planCode = document.getElementById('calc-plan').value;
+  const tier = document.getElementById('calc-tier').value;
+  const usage = {
+    pcp: parseInt(document.getElementById('calc-pcp').value)||0,
+    spec: parseInt(document.getElementById('calc-spec').value)||0,
+    uc: parseInt(document.getElementById('calc-uc').value)||0,
+    er: parseInt(document.getElementById('calc-er').value)||0,
+    rxGen: parseInt(document.getElementById('calc-rx-gen').value)||0,
+    rxBrand: parseInt(document.getElementById('calc-rx-brand').value)||0,
+    rxNF: parseInt(document.getElementById('calc-rx-nf').value)||0,
+    lab: parseInt(document.getElementById('calc-lab').value)||0,
+  };
+
+  const plan = PLANS.find(p=>p.code===planCode);
+  if (!plan) return;
+
+  const { annualPremium, medicalCosts, total } = estimateCost(plan, tier, usage);
+
+  document.getElementById('calc-plan-name').innerHTML = `<span class="mono" style="font-size:13px;font-weight:700;color:var(--color-primary);margin-right:8px;">${plan.code}</span>${plan.name.replace('AET ','').replace(' JNY','')}`;
+
+  const isHDHP = plan.hdphp;
+  const hsaNote = plan.hsa ? `<div style="margin-top:var(--space-3);padding:var(--space-3);background:color-mix(in oklab,var(--color-success) 8%,var(--color-base-100));border-radius:var(--radius-md);font-size:12px;color:var(--color-success);">HSA eligible — 2026 family contribution limit is $8,550. Contributions reduce your taxable income.</div>` : '';
+
+  // Compute Rx cost for display
+  const rxGenAmt  = usage.rxGen;
+  const rxBrandAmt = usage.rxBrand;
+  const rxNFAmt   = usage.rxNF;
+  let rxDisplayCost;
+  if (plan.hdphp) {
+    // Rx rolls into the HDHP deductible bucket; show estimated annual Rx spend
+    rxDisplayCost = rxGenAmt*12*35 + rxBrandAmt*12*180 + rxNFAmt*12*280;
+  } else {
+    rxDisplayCost = rxGenAmt*12*plan.rxGen + rxBrandAmt*12*plan.rxBrand + rxNFAmt*12*plan.rxNF;
+  }
+  const rxLineNote = plan.rxDed
+    ? (plan.hdphp ? ' <span style="font-size:10px;opacity:.6;">(est. at cost until ded met)</span>' : ' <span style="font-size:10px;opacity:.6;">(after med ded)</span>')
+    : '';
+  const rxDetail = (rxGenAmt||rxBrandAmt||rxNFAmt)
+    ? `<div style="font-size:11px;opacity:.55;padding:2px 0 6px;line-height:1.6;">`
+      + (rxGenAmt ? `Generic: ${rxGenAmt}/mo &times; ${plan.rxDed&&plan.rxGen===0?'$0 after ded':'$'+plan.rxGen} = ${fmt(rxGenAmt*12*(plan.hdphp?35:plan.rxGen))}/yr &nbsp;` : '')
+      + (rxBrandAmt ? `Brand: ${rxBrandAmt}/mo &times; ${plan.rxDed&&plan.rxBrand===0?'$0 after ded':'$'+plan.rxBrand} = ${fmt(rxBrandAmt*12*(plan.hdphp?180:plan.rxBrand))}/yr &nbsp;` : '')
+      + (rxNFAmt ? `Non-form: ${rxNFAmt}/mo &times; ${plan.rxDed&&plan.rxNF===0?'$0 after ded':'$'+plan.rxNF} = ${fmt(rxNFAmt*12*(plan.hdphp?280:plan.rxNF))}/yr` : '')
+      + `</div>` : '';
+
+  document.getElementById('calc-output').innerHTML = `
+    <div class="result-row"><span style="opacity:.7;">Annual Premiums</span><span class="result-val">${fmt(Math.round(annualPremium))}</span></div>
+    <div class="result-row"><span style="opacity:.7;">Medical &amp; Visits OOP</span><span class="result-val">${fmt(Math.round(medicalCosts - rxDisplayCost))}</span></div>
+    <div class="result-row"><span style="opacity:.7;">Prescription Costs${rxLineNote}</span><span class="result-val">${fmt(Math.round(rxDisplayCost))}</span></div>
+    ${rxDetail}
+    <div class="result-row" style="font-size:11px;opacity:.45;padding-top:2px;"><span>Deductible: ${fmt(plan.famDed)} fam &nbsp;|&nbsp; OOP Max: ${fmt(plan.oopFam)} fam</span></div>
+    <div class="result-total"><span>Estimated Annual Total</span><span class="result-val" style="color:var(--color-primary);">${fmt(Math.round(total))}</span></div>
+    ${isHDHP ? `<div style="font-size:11px;opacity:.5;margin-top:var(--space-2);line-height:1.5;">HDHP Rx is estimated at full cost until deductible is met, then $0 (H2) or copay. Actual costs depend on plan year timing.</div>` : ''}
+    ${hsaNote}
+  `;
+
+  renderTop3(tier, usage);
+}
+
+function renderTop3(tier, usage) {
+  const scored = PLANS.map(p => ({...p, ...estimateCost(p, tier, usage)}))
+    .sort((a,b)=>a.total-b.total).slice(0,3);
+
+  const colors = ['var(--color-success)','var(--color-primary)','var(--color-warning)'];
+  document.getElementById('top3-output').innerHTML = scored.map((p,i) => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--color-base-300);${i===2?'border-bottom:none':''}">
+      <div>
+        <span style="font-weight:600;color:${colors[i]};">#${i+1}</span>
+        <span class="mono" style="font-weight:700;font-size:12px;color:var(--color-primary);margin-left:8px;">${p.code}</span>
+        <span style="margin-left:6px;">${p.name.replace('AET ','').replace(' JNY','')}</span>
+        ${p.hsa?'<span class="badge badge-primary" style="margin-left:6px;font-size:10px;">HSA</span>':''}
+      </div>
+      <span class="mono" style="font-weight:600;">${fmt(Math.round(p.total))}</span>
+    </div>
+  `).join('');
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+function initCalcSelect() {
+  const sel = document.getElementById('calc-plan');
+  sel.innerHTML = PLANS.map(p => `<option value="${p.code}"${p.code==='H2'?' selected':''}>${p.code} — ${p.name.replace('AET ','').replace(' JNY','')}</option>`).join('');
+}
+
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'phantom-dark';
+  const next = isDark ? 'phantom-light' : 'phantom-dark';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('phantom-theme', next);
+  document.getElementById('theme-icon-sun').style.display = isDark ? 'block' : 'none';
+  document.getElementById('theme-icon-moon').style.display = isDark ? 'none' : 'block';
+}
+
+function initThemeIcon() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'phantom-dark';
+  document.getElementById('theme-icon-sun').style.display = isDark ? 'block' : 'none';
+  document.getElementById('theme-icon-moon').style.display = isDark ? 'none' : 'block';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  renderTable();
+  initCalcSelect();
+  initThemeIcon();
+  calculate();
+});
+</script>
+
+<script>
+// ── Password gate logic ────────────────────────────────────────────────────
+const PW_HASH = '996996923650af770e7f091cfb6f1d878a1af46df21ee8387d7b9cb939b095c2';
+const SESSION_KEY = 'mpg_unlocked';
+
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function checkPassword(e) {
+  e.preventDefault();
+  const val = document.getElementById('pw-input').value.trim();
+  const errEl = document.getElementById('pw-error');
+  if (!val) return;
+  const hash = await sha256(val);
+  if (hash === PW_HASH) {
+    sessionStorage.setItem(SESSION_KEY, '1');
+    const gate = document.getElementById('pw-gate');
+    gate.style.transition = 'opacity 0.3s ease';
+    gate.style.opacity = '0';
+    setTimeout(() => gate.remove(), 320);
+  } else {
+    errEl.textContent = 'Incorrect password.';
+    document.getElementById('pw-input').value = '';
+    document.getElementById('pw-input').focus();
+    setTimeout(() => errEl.textContent = '', 3000);
+  }
+}
+
+// Check on load — skip gate if already unlocked this session
+if (sessionStorage.getItem(SESSION_KEY) === '1') {
+  document.getElementById('pw-gate').remove();
+}
+</script>
+</body>
+</html>

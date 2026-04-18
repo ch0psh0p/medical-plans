@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="phantom-light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>California HMO Plan Comparison - Phantom</title>
+  <script>
+    (function() {
+      var stored = localStorage.getItem('phantom-theme');
+      var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      var theme = stored || (prefersDark ? 'phantom-dark' : 'phantom-light');
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style type="text/tailwindcss">
+    @theme {
+      --color-phantom: #5e6ad2;
+      --font-family-sans: 'Inter', system-ui, sans-serif;
+      --font-family-serif: 'Instrument Serif', Georgia, serif;
+      --font-family-mono: 'JetBrains Mono', monospace;
+    }
+    [data-theme="phantom-light"] {
+      --color-base-100: #faf9f5; --color-base-200: #ffffff; --color-base-300: #ece9df;
+      --color-base-content: #1c1917; --color-primary: #4850c4; --color-primary-content: #ffffff;
+      --color-success: #16a34a; --color-warning: #ca8a04; --color-error: #dc2626;
+      --color-info: #2563eb; --radius-box: 14px; color-scheme: light;
+    }
+    [data-theme="phantom-dark"] {
+      --color-base-100: #0b0a09; --color-base-200: #161412; --color-base-300: #26211d;
+      --color-base-content: #f7f6f1; --color-primary: #7078e0; --color-primary-content: #0b0a09;
+      --color-success: #4ade80; --color-warning: #fbbf24; --color-error: #f87171;
+      --color-info: #60a5fa; --radius-box: 14px; color-scheme: dark;
+    }
+  </style>
+  <style>
+    :root {
+      --space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:20px;
+      --space-6:24px;--space-8:32px;--space-10:40px;--space-12:48px;--space-16:64px;
+      --radius-sm:8px;--radius-md:10px;--radius-lg:14px;--radius-pill:9999px;
+      --motion-base:150ms;--motion-slow:300ms;--ease-out:cubic-bezier(0.25,0.46,0.45,0.94);
+    }
+    body { font-family:'Inter',sans-serif; background:var(--color-base-100); color:var(--color-base-content); font-variant-numeric:tabular-nums; -webkit-font-smoothing:antialiased; margin:0; }
+    .page { max-width:1240px; margin:0 auto; padding:var(--space-8); }
+    .page-narrow { max-width:760px; margin:0 auto; padding:var(--space-6) var(--space-8); }
+    h1 { font-family:'Instrument Serif',serif; font-size:32px; font-weight:500; line-height:1.15; margin:0 0 var(--space-3); }
+    h2 { font-family:'Instrument Serif',serif; font-size:22px; font-weight:500; margin:0 0 var(--space-4); }
+    h3 { font-family:'Inter',sans-serif; font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; margin:0 0 var(--space-3); color:var(--color-base-content); opacity:.6; }
+    .eyebrow { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.08em; opacity:.5; margin-bottom:var(--space-2); }
+    .lead { font-size:15px; line-height:1.6; opacity:.75; margin:0; }
+    .card { background:var(--color-base-200); border:1px solid var(--color-base-300); border-radius:var(--radius-lg); padding:var(--space-6); }
+    .card-sm { padding:var(--space-4); }
+    .divider { height:1px; background:var(--color-base-300); border:0; margin:var(--space-8) 0; }
+    .badge { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:var(--radius-pill); font-size:11px; font-weight:600; }
+    .badge-success { background:color-mix(in oklab,var(--color-success) 12%,transparent); color:var(--color-success); }
+    .badge-error { background:color-mix(in oklab,var(--color-error) 12%,transparent); color:var(--color-error); }
+    .badge-warning { background:color-mix(in oklab,var(--color-warning) 12%,transparent); color:var(--color-warning); }
+    .badge-info { background:color-mix(in oklab,var(--color-info) 12%,transparent); color:var(--color-info); }
+    .badge-neutral { background:color-mix(in oklab,var(--color-base-content) 8%,transparent); color:var(--color-base-content); opacity:.8; }
+    .badge-primary { background:color-mix(in oklab,var(--color-primary) 12%,transparent); color:var(--color-primary); }
+    .stat-value { font-size:28px; font-weight:600; line-height:1; font-variant-numeric:tabular-nums; }
+    .stat-label { font-size:12px; opacity:.55; margin-top:4px; }
+    .btn { display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:var(--radius-pill); font-size:13px; font-weight:500; cursor:pointer; border:none; transition:all var(--motion-base) var(--ease-out); }
+    .btn-primary { background:var(--color-primary); color:var(--color-primary-content); }
+    .btn-primary:hover { opacity:.88; }
+    .btn-ghost { background:transparent; color:var(--color-base-content); border:1px solid var(--color-base-300); }
+    .btn-ghost:hover { background:var(--color-base-300); }
+    .btn-sm { padding:5px 12px; font-size:12px; }
+
+    /* Nav */
+    .nav { background:var(--color-base-200); border-bottom:1px solid var(--color-base-300); padding:0 var(--space-8); display:flex; align-items:center; gap:var(--space-4); height:52px; position:sticky; top:0; z-index:10; }
+    .nav-brand { font-family:'Instrument Serif',serif; font-size:17px; font-weight:500; color:var(--color-base-content); text-decoration:none; }
+    .nav-brand span { color:var(--color-primary); }
+
+    /* Alert */
+    .alert { padding:var(--space-4); border-radius:var(--radius-md); font-size:13px; line-height:1.5; display:flex; gap:var(--space-3); align-items:flex-start; }
+    .alert-warning { background:color-mix(in oklab,var(--color-warning) 10%,var(--color-base-200)); border:1px solid color-mix(in oklab,var(--color-warning) 25%,transparent); }
+    .alert-info { background:color-mix(in oklab,var(--color-info) 10%,var(--color-base-200)); border:1px solid color-mix(in oklab,var(--color-info) 25%,transparent); }
+    .alert-success { background:color-mix(in oklab,var(--color-success) 10%,var(--color-base-200)); border:1px solid color-mix(in oklab,var(--color-success) 25%,transparent); }
+
+    /* Table */
+    .tbl-wrap { overflow-x:auto; border:1px solid var(--color-base-300); border-radius:var(--radius-lg); }
+    table { width:100%; border-collapse:collapse; font-size:13px; }
+    thead th { background:var(--color-base-100); padding:10px 14px; text-align:left; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; opacity:.6; border-bottom:1px solid var(--color-base-300); white-space:nowrap; }
+    tbody td { padding:10px 14px; border-bottom:1px solid var(--color-base-300); vertical-align:middle; }
+    tbody tr:last-child td { border-bottom:none; }
+    tbody tr:hover { background:color-mix(in oklab,var(--color-primary) 4%,var(--color-base-200)); }
+    .mono { font-family:'JetBrains Mono',monospace; font-size:12px; }
+    .text-right { text-align:right; }
+    .text-center { text-align:center; }
+
+    /* Rec cards */
+    .rec-card { border:1px solid var(--color-base-300); border-radius:var(--radius-lg); padding:var(--space-5); background:var(--color-base-200); }
+    .rec-card.top-pick { border-color:var(--color-primary); border-width:2px; }
+    .rec-badge { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--color-primary); margin-bottom:var(--space-2); }
+    .rec-name { font-family:'Instrument Serif',serif; font-size:17px; font-weight:500; margin:0 0 var(--space-2); }
+    .rec-price { font-size:22px; font-weight:700; font-variant-numeric:tabular-nums; }
+    .rec-price-label { font-size:11px; opacity:.5; margin-top:2px; }
+    .pros-cons { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-3); margin-top:var(--space-4); }
+    .pros, .cons { font-size:12px; }
+    .pros li, .cons li { padding:3px 0; display:flex; gap:6px; align-items:flex-start; line-height:1.4; }
+    .pros li::before { content:"↑"; color:var(--color-success); flex-shrink:0; font-size:11px; margin-top:2px; }
+    .cons li::before { content:"↓"; color:var(--color-error); flex-shrink:0; font-size:11px; margin-top:2px; }
+    ul.pros, ul.cons { list-style:none; padding:0; margin:4px 0 0; }
+
+    /* Calculator */
+    .calc-grid { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-6); }
+    @media(max-width:780px) { .calc-grid { grid-template-columns:1fr; } .pros-cons { grid-template-columns:1fr; } }
+    .form-row { margin-bottom:var(--space-4); }
+    .form-label { font-size:12px; font-weight:500; margin-bottom:6px; display:block; }
+    .form-input { width:100%; padding:8px 12px; border:1px solid var(--color-base-300); border-radius:var(--radius-md); background:var(--color-base-100); color:var(--color-base-content); font-size:13px; font-family:'Inter',sans-serif; box-sizing:border-box; }
+    .form-input:focus { outline:none; border-color:var(--color-primary); box-shadow:0 0 0 3px color-mix(in oklab,var(--color-primary) 18%,transparent); }
+    .form-select { appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 10px center; padding-right:30px; }
+
+    /* Results */
+    .result-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--color-base-300); font-size:13px; }
+    .result-row:last-child { border-bottom:none; }
+    .result-total { display:flex; justify-content:space-between; align-items:center; padding:12px 0 4px; font-weight:700; font-size:15px; }
+    .result-val { font-family:'JetBrains Mono',monospace; font-size:13px; }
+    .result-total .result-val { font-size:18px; }
+
+    /* Theme toggle */
+    .theme-btn { background:none; border:1px solid var(--color-base-300); border-radius:var(--radius-sm); width:32px; height:32px; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--color-base-content); margin-left:auto; }
+
+    /* Grid layouts */
+    .stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:var(--space-4); }
+    @media(max-width:640px) { .stats-row { grid-template-columns:repeat(2,1fr); } }
+    .rec-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:var(--space-4); }
+
+    /* Sort indicator */
+    th.sortable { cursor:pointer; user-select:none; }
+    th.sortable:hover { opacity:1; }
+    th.sort-asc::after { content:" ↑"; }
+    th.sort-desc::after { content:" ↓"; }
+
+    /* Highlight */
+    .highlight-row { background:color-mix(in oklab,var(--color-primary) 5%,var(--color-base-200)) !important; }
+
+    /* Filter chips */
+    .filter-chip { padding:4px 12px; border-radius:var(--radius-pill); font-size:12px; font-weight:500; border:1px solid var(--color-base-300); background:var(--color-base-200); cursor:pointer; transition:all var(--motion-base) var(--ease-out); }
+    .filter-chip.active { background:var(--color-primary); color:var(--color-primary-content); border-color:var(--color-primary); }
+  </style>
+</head>
+<body>
+
+<!-- ── Password gate ──────────────────────────────────────────────────────── -->
+<div id="pw-gate" style="
+  position:fixed;inset:0;z-index:9999;
+  background:var(--color-base-100);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Inter',sans-serif;
+">
+  <div style="width:100%;max-width:400px;padding:var(--space-8);text-align:center;">
+    <div style="font-family:'Instrument Serif',serif;font-size:13px;letter-spacing:.04em;opacity:.5;text-transform:uppercase;margin-bottom:var(--space-3);">Protected Page</div>
+    <div style="font-family:'Instrument Serif',serif;font-size:28px;font-weight:500;margin-bottom:var(--space-2);">California <em style="font-style:italic;">HMO</em> Plans</div>
+    <div style="font-size:13px;opacity:.55;margin-bottom:var(--space-8);line-height:1.5;">Enter the access password to view plan details.</div>
+
+    <form id="pw-form" onsubmit="checkPassword(event)" style="display:flex;flex-direction:column;gap:var(--space-3);">
+      <input
+        id="pw-input"
+        type="password"
+        placeholder="Password"
+        autocomplete="current-password"
+        style="
+          padding:12px 16px;
+          border:1px solid var(--color-base-300);
+          border-radius:var(--radius-md);
+          background:var(--color-base-200);
+          color:var(--color-base-content);
+          font-size:15px;
+          font-family:'Inter',sans-serif;
+          text-align:center;
+          letter-spacing:.08em;
+          box-sizing:border-box;
+          width:100%;
+        "
+      >
+      <div id="pw-error" style="font-size:12px;color:var(--color-error);min-height:18px;"></div>
+      <button type="submit" style="
+        padding:12px;
+        background:var(--color-primary);
+        color:var(--color-primary-content);
+        border:none;
+        border-radius:var(--radius-pill);
+        font-size:14px;
+        font-weight:500;
+        font-family:'Inter',sans-serif;
+        cursor:pointer;
+        letter-spacing:.01em;
+      ">View Plans</button>
+    </form>
+
+    <div style="margin-top:var(--space-8);font-size:11px;opacity:.3;">Aetna via Justworks &nbsp;·&nbsp; 2026 &nbsp;·&nbsp; California</div>
+  </div>
+</div>
+<!-- ── End password gate ──────────────────────────────────────────────────── -->
+
+<nav class="nav">
+  <a class="nav-brand" href="#">Medical Plan <span>Comparison</span></a>
+
+  <!-- Plan switcher -->
+  <div style="display:flex;gap:4px;margin:0 auto;">
+    <a href="index.html" style="padding:5px 14px;border-radius:var(--radius-pill);font-size:12px;font-weight:500;text-decoration:none;border:1px solid var(--color-base-300);color:var(--color-base-content);background:transparent;">National</a>
+    <a href="ca.html" style="padding:5px 14px;border-radius:var(--radius-pill);font-size:12px;font-weight:500;text-decoration:none;background:var(--color-primary);color:var(--color-primary-content);border:1px solid var(--color-primary);">California</a>
+  </div>
+
+  <div style="display:flex;gap:8px;align-items:center;">
+    <span style="font-size:12px;opacity:.5;">Aetna via Justworks — 2026</span>
+    <button class="theme-btn" onclick="toggleTheme()" title="Toggle theme">
+      <svg id="theme-icon-sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+      <svg id="theme-icon-moon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+  </div>
+</nav>
+
+<main>
+<div class="page">
+
+  <!-- Hero -->
+  <div style="padding:var(--space-10) 0 var(--space-8);">
+    <div class="eyebrow">California HMO Plans</div>
+    <h1>California <em style="font-style:italic;">HMO</em> Plans</h1>
+    <p class="lead" style="max-width:640px;">5 Aetna HMO plans available in California. All in-network only. Lower premiums and $0 deductibles make these compelling — if your care stays in California.</p>
+  </div>
+
+  <!-- Stats row -->
+  <div class="stats-row" style="margin-bottom:var(--space-8);">
+    <div class="card card-sm">
+      <div class="stat-label">Plans Available</div>
+      <div class="stat-value" style="font-size:22px;">5</div>
+      <div style="font-size:11px;opacity:.5;margin-top:4px;">All Aetna HMO</div>
+    </div>
+    <div class="card card-sm">
+      <div class="stat-label">Network Type</div>
+      <div class="stat-value" style="font-size:18px;padding-top:4px;">HMO</div>
+      <div style="font-size:11px;opacity:.5;margin-top:4px;">In-network only</div>
+    </div>
+    <div class="card card-sm">
+      <div class="stat-label">Deductible Range</div>
+      <div class="stat-value" style="font-size:20px;padding-top:2px;">$0–$2k</div>
+      <div style="font-size:11px;opacity:.5;margin-top:4px;">Individual deductible</div>
+    </div>
+    <div class="card card-sm">
+      <div class="stat-label">Family Premium Range</div>
+      <div class="stat-value" style="font-size:18px;padding-top:4px;color:var(--color-success);">$2,065–$3,514</div>
+      <div style="font-size:11px;opacity:.5;margin-top:4px;">Per month</div>
+    </div>
+  </div>
+
+  <!-- HMO warning alert -->
+  <div class="alert alert-warning" style="margin-bottom:var(--space-5);">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px;color:var(--color-warning)"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    <div><strong>HMO plans have no out-of-network coverage.</strong> Any care received outside California costs 100% out of pocket. If you need coverage in a second state, use the <a href="index.html" style="color:var(--color-warning);font-weight:600;">National Plans</a>.</div>
+  </div>
+
+  <!-- AVN info alert -->
+  <div class="alert alert-info" style="margin-bottom:var(--space-8);">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px;color:var(--color-info)"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <div><strong>AVN plans (CA3, CA5) use the Aetna Vital Network</strong> — a narrower provider set with lower premiums. Always verify your doctors are in the AVN network before enrolling.</div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Top Recommendations -->
+  <div class="phantom-section">
+    <h2>Top Recommendations</h2>
+    <p class="lead" style="margin-bottom:var(--space-6);">Ranked by value for California-only coverage. HMO plans require staying in-network — verify your providers before choosing.</p>
+
+    <div class="rec-grid">
+
+      <!-- CA5 -->
+      <div class="rec-card top-pick">
+        <div class="rec-badge">Best Value</div>
+        <div class="rec-name">AET AVN CAHMO 40/70 1000/100%</div>
+        <div style="display:flex;gap:8px;margin-bottom:var(--space-3);flex-wrap:wrap;">
+          <span class="badge badge-warning">AVN Network</span>
+          <span class="badge badge-neutral">Code CA5</span>
+        </div>
+        <div class="rec-price">$2,065<span style="font-size:14px;font-weight:400;opacity:.6;">/mo</span></div>
+        <div class="rec-price-label">Family premium (lowest of all CA plans)</div>
+        <div style="margin-top:var(--space-3);font-size:12px;display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;">
+          <span style="opacity:.6;">Deductible</span><span class="mono">$1,000 / $2,000 fam</span>
+          <span style="opacity:.6;">After ded</span><span class="mono">100% covered</span>
+          <span style="opacity:.6;">PCP Copay</span><span class="mono">$40</span>
+          <span style="opacity:.6;">OOP Max</span><span class="mono">$7,000 / $14,000 fam</span>
+        </div>
+        <div class="pros-cons">
+          <div>
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--color-success);margin-bottom:4px;">Advantages</div>
+            <ul class="pros">
+              <li>Lowest premium of all 5 CA plans</li>
+              <li>$1k deductible — modest exposure before 100% coverage</li>
+              <li>100% covered after deductible, 0% coinsurance</li>
+              <li>ER covered at $350 after deductible</li>
+            </ul>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--color-error);margin-bottom:4px;">Disadvantages</div>
+            <ul class="cons">
+              <li>AVN restricted network — verify all providers</li>
+              <li>$40 PCP copay — higher than CA1/CA2</li>
+              <li>$100 UC copay</li>
+              <li>No out-of-network coverage whatsoever</li>
+            </ul>
+          </div>
+        </div>
+        <div style="margin-top:var(--space-4);padding:var(--space-3);background:color-mix(in oklab,var(--color-primary) 6%,var(--color-base-100));border-radius:var(--radius-md);font-size:12px;line-height:1.5;">
+          <strong>Best fit when:</strong> All your providers accept Aetna AVN and you want to maximize premium savings. Confirm AVN participation before enrolling.
+        </div>
+      </div>
+
+      <!-- CA3 -->
+      <div class="rec-card top-pick">
+        <div class="rec-badge">Best Balanced AVN</div>
+        <div class="rec-name">AET AVN CAHMO 20/50 0/100%</div>
+        <div style="display:flex;gap:8px;margin-bottom:var(--space-3);flex-wrap:wrap;">
+          <span class="badge badge-warning">AVN Network</span>
+          <span class="badge badge-neutral">Code CA3</span>
+        </div>
+        <div class="rec-price">$2,479<span style="font-size:14px;font-weight:400;opacity:.6;">/mo</span></div>
+        <div class="rec-price-label">Family premium</div>
+        <div style="margin-top:var(--space-3);font-size:12px;display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;">
+          <span style="opacity:.6;">Deductible</span><span class="mono">$0 / $0 fam</span>
+          <span style="opacity:.6;">PCP Copay</span><span class="mono">$20 (lowest AVN)</span>
+          <span style="opacity:.6;">Specialist</span><span class="mono">$50</span>
+          <span style="opacity:.6;">OOP Max</span><span class="mono">$4,000 / $8,000 fam</span>
+        </div>
+        <div class="pros-cons">
+          <div>
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--color-success);margin-bottom:4px;">Advantages</div>
+            <ul class="pros">
+              <li>$0 deductible — copays apply from visit one</li>
+              <li>$20 PCP copay, lowest among AVN plans</li>
+              <li>Lowest family OOP max of any CA plan ($8,000)</li>
+              <li>No deductible surprise for hospital visits</li>
+            </ul>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--color-error);margin-bottom:4px;">Disadvantages</div>
+            <ul class="cons">
+              <li>AVN restricted network — verify all providers</li>
+              <li>~$414/mo more than CA5</li>
+              <li>No out-of-network coverage</li>
+            </ul>
+          </div>
+        </div>
+        <div style="margin-top:var(--space-4);padding:var(--space-3);background:color-mix(in oklab,var(--color-primary) 6%,var(--color-base-100));border-radius:var(--radius-md);font-size:12px;line-height:1.5;">
+          <strong>Best fit when:</strong> You want AVN savings but prefer no deductible and a lower PCP copay for frequent visits.
+        </div>
+      </div>
+
+      <!-- CA4 -->
+      <div class="rec-card">
+        <div class="rec-badge">Best Full Network Value</div>
+        <div class="rec-name">AET CAHMO 40/70 2000/100%</div>
+        <div style="display:flex;gap:8px;margin-bottom:var(--space-3);flex-wrap:wrap;">
+          <span class="badge badge-info">Full HMO Network</span>
+          <span class="badge badge-neutral">Code CA4</span>
+        </div>
+        <div class="rec-price">$2,356<span style="font-size:14px;font-weight:400;opacity:.6;">/mo</span></div>
+        <div class="rec-price-label">Family premium</div>
+        <div style="margin-top:var(--space-3);font-size:12px;display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;">
+          <span style="opacity:.6;">Deductible</span><span class="mono">$2,000 / $4,000 fam</span>
+          <span style="opacity:.6;">After ded</span><span class="mono">100% covered</span>
+          <span style="opacity:.6;">PCP Copay</span><span class="mono">$40 (after ded)</span>
+          <span style="opacity:.6;">OOP Max</span><span class="mono">$7,000 / $14,000 fam</span>
+        </div>
+        <div class="pros-cons">
+          <div>
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--color-success);margin-bottom:4px;">Advantages</div>
+            <ul class="pros">
+              <li>Full HMO network — broader provider access than AVN</li>
+              <li>Second-lowest premium among full network plans</li>
+              <li>100% covered after deductible</li>
+            </ul>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--color-error);margin-bottom:4px;">Disadvantages</div>
+            <ul class="cons">
+              <li>$2,000 individual deductible before copays kick in</li>
+              <li>$40 PCP and $100 UC copays apply after deductible</li>
+              <li>No out-of-network coverage</li>
+            </ul>
+          </div>
+        </div>
+        <div style="margin-top:var(--space-4);padding:var(--space-3);background:color-mix(in oklab,var(--color-base-content) 4%,var(--color-base-100));border-radius:var(--radius-md);font-size:12px;line-height:1.5;">
+          <strong>Best fit when:</strong> Your providers are in the full Aetna HMO network but not AVN, and you want to minimize premiums without the AVN restriction risk.
+        </div>
+      </div>
+
+      <!-- CA2 -->
+      <div class="rec-card">
+        <div class="rec-badge">Best Full HMO No Deductible</div>
+        <div class="rec-name">AET CAHMO 30/60 0/100%</div>
+        <div style="display:flex;gap:8px;margin-bottom:var(--space-3);flex-wrap:wrap;">
+          <span class="badge badge-info">Full HMO Network</span>
+          <span class="badge badge-neutral">Code CA2</span>
+        </div>
+        <div class="rec-price">$2,958<span style="font-size:14px;font-weight:400;opacity:.6;">/mo</span></div>
+        <div class="rec-price-label">Family premium</div>
+        <div style="margin-top:var(--space-3);font-size:12px;display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;">
+          <span style="opacity:.6;">Deductible</span><span class="mono">$0 / $0 fam</span>
+          <span style="opacity:.6;">PCP Copay</span><span class="mono">$30</span>
+          <span style="opacity:.6;">Specialist</span><span class="mono">$60</span>
+          <span style="opacity:.6;">OOP Max</span><span class="mono">$6,000 / $12,000 fam</span>
+        </div>
+        <div class="pros-cons">
+          <div>
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--color-success);margin-bottom:4px;">Advantages</div>
+            <ul class="pros">
+              <li>$0 deductible, copays from day one</li>
+              <li>Full HMO network — no AVN restriction</li>
+              <li>$30 PCP copay — lower than CA4/CA5</li>
+            </ul>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--color-error);margin-bottom:4px;">Disadvantages</div>
+            <ul class="cons">
+              <li>Higher premium — $602/mo more than CA4</li>
+              <li>$6,000 individual OOP max (high for low copay plan)</li>
+              <li>No out-of-network coverage</li>
+            </ul>
+          </div>
+        </div>
+        <div style="margin-top:var(--space-4);padding:var(--space-3);background:color-mix(in oklab,var(--color-base-content) 4%,var(--color-base-100));border-radius:var(--radius-md);font-size:12px;line-height:1.5;">
+          <strong>Best fit when:</strong> You want predictable flat copays on the full HMO network and dislike any deductible, and are comfortable paying a higher premium for that certainty.
+        </div>
+      </div>
+
+      <!-- CA1 -->
+      <div class="rec-card">
+        <div class="rec-badge">Lowest Copays</div>
+        <div class="rec-name">AET CAHMO 10/25 0/100%</div>
+        <div style="display:flex;gap:8px;margin-bottom:var(--space-3);flex-wrap:wrap;">
+          <span class="badge badge-info">Full HMO Network</span>
+          <span class="badge badge-neutral">Code CA1</span>
+        </div>
+        <div class="rec-price">$3,514<span style="font-size:14px;font-weight:400;opacity:.6;">/mo</span></div>
+        <div class="rec-price-label">Family premium (highest of all CA plans)</div>
+        <div style="margin-top:var(--space-3);font-size:12px;display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;">
+          <span style="opacity:.6;">Deductible</span><span class="mono">$0 / $0 fam</span>
+          <span style="opacity:.6;">PCP Copay</span><span class="mono">$10 (lowest of all)</span>
+          <span style="opacity:.6;">Specialist</span><span class="mono">$25</span>
+          <span style="opacity:.6;">OOP Max</span><span class="mono">$3,000 / $6,000 fam</span>
+        </div>
+        <div class="pros-cons">
+          <div>
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--color-success);margin-bottom:4px;">Advantages</div>
+            <ul class="pros">
+              <li>$10 PCP copay — lowest of all 5 CA plans</li>
+              <li>$25 specialist copay — very low</li>
+              <li>$0 deductible, lowest family OOP max ($6k)</li>
+            </ul>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--color-error);margin-bottom:4px;">Disadvantages</div>
+            <ul class="cons">
+              <li>Highest premium by a wide margin ($556/mo more than CA2)</li>
+              <li>Premium difference rarely offset by copay savings</li>
+              <li>No out-of-network coverage</li>
+            </ul>
+          </div>
+        </div>
+        <div style="margin-top:var(--space-4);padding:var(--space-3);background:color-mix(in oklab,var(--color-base-content) 4%,var(--color-base-100));border-radius:var(--radius-md);font-size:12px;line-height:1.5;">
+          <strong>Caution:</strong> The premium premium over CA2 ($6,672/yr more) is almost never recouped by lower copays alone. Only consider if you have very frequent specialist visits.
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Full comparison table -->
+  <div class="phantom-section">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-4);flex-wrap:wrap;gap:var(--space-3);">
+      <h2 style="margin:0;">All 5 California HMO Plans</h2>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="filter-chip active" onclick="filterPlans('all',this)">All Plans</button>
+        <button class="filter-chip" onclick="filterPlans('no-ded',this)">No Deductible</button>
+        <button class="filter-chip" onclick="filterPlans('avn',this)">AVN Only</button>
+        <button class="filter-chip" onclick="filterPlans('full-hmo',this)">Full HMO</button>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table id="plan-table">
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Plan Name</th>
+            <th>Network</th>
+            <th class="sortable" onclick="sortTable('ded')" id="th-ded">Deductible</th>
+            <th>Fam Ded</th>
+            <th>PCP</th>
+            <th>Specialist</th>
+            <th>UC</th>
+            <th>ER</th>
+            <th>OOP Max Fam</th>
+            <th>Rx Ded</th>
+            <th>Generic</th>
+            <th>Brand</th>
+            <th>Non-Form</th>
+            <th class="sortable" onclick="sortTable('prem')" id="th-prem">Family Premium/mo</th>
+          </tr>
+        </thead>
+        <tbody id="plan-tbody"></tbody>
+      </table>
+    </div>
+    <div style="font-size:11px;opacity:.5;margin-top:var(--space-3);">* Rx deductible ($150 individual / $450 family) applies before copays. ER copay applies after deductible for CA4 and CA5. Click column headers to sort.</div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Cost Calculator -->
+  <div class="phantom-section">
+    <h2>Annual Cost Calculator</h2>
+    <p class="lead" style="margin-bottom:var(--space-6);">Estimate your total annual cost — premiums plus expected out-of-pocket spending — for any California HMO plan.</p>
+
+    <div class="calc-grid">
+      <!-- Inputs -->
+      <div>
+        <div class="card">
+          <h3>Your Situation</h3>
+
+          <div class="form-row">
+            <label class="form-label">Plan</label>
+            <select class="form-input form-select" id="calc-plan" onchange="calculate()"></select>
+          </div>
+
+          <div class="form-row">
+            <label class="form-label">Coverage Tier</label>
+            <select class="form-input form-select" id="calc-tier" onchange="calculate()">
+              <option value="emp">Employee Only</option>
+              <option value="emp_spouse">Employee + Spouse</option>
+              <option value="emp_children" selected>Employee + Children</option>
+              <option value="family">Family</option>
+            </select>
+          </div>
+
+          <hr class="divider" style="margin:var(--space-4) 0;">
+          <h3>Expected Annual Usage</h3>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4);">
+            <div class="form-row" style="margin-bottom:0;">
+              <label class="form-label">PCP Visits / yr</label>
+              <input type="number" class="form-input" id="calc-pcp" value="6" min="0" max="52" oninput="calculate()">
+            </div>
+            <div class="form-row" style="margin-bottom:0;">
+              <label class="form-label">Specialist Visits / yr</label>
+              <input type="number" class="form-input" id="calc-spec" value="4" min="0" max="52" oninput="calculate()">
+            </div>
+            <div class="form-row" style="margin-bottom:0;">
+              <label class="form-label">Urgent Care / yr</label>
+              <input type="number" class="form-input" id="calc-uc" value="2" min="0" max="20" oninput="calculate()">
+            </div>
+            <div class="form-row" style="margin-bottom:0;">
+              <label class="form-label">ER Visits / yr</label>
+              <input type="number" class="form-input" id="calc-er" value="0" min="0" max="10" oninput="calculate()">
+            </div>
+            <div class="form-row" style="margin-bottom:0;">
+              <label class="form-label">Generic Rx / mo</label>
+              <input type="number" class="form-input" id="calc-rx-gen" value="2" min="0" max="20" oninput="calculate()">
+            </div>
+            <div class="form-row" style="margin-bottom:0;">
+              <label class="form-label">Brand Rx / mo</label>
+              <input type="number" class="form-input" id="calc-rx-brand" value="0" min="0" max="10" oninput="calculate()">
+            </div>
+            <div class="form-row" style="margin-bottom:0;">
+              <label class="form-label">Non-Formulary Rx / mo</label>
+              <input type="number" class="form-input" id="calc-rx-nf" value="0" min="0" max="10" oninput="calculate()">
+            </div>
+            <div class="form-row" style="margin-bottom:0;">
+              <label class="form-label">Lab / Imaging / yr</label>
+              <input type="number" class="form-input" id="calc-lab" value="2" min="0" max="20" oninput="calculate()">
+            </div>
+          </div>
+          <div style="margin-top:var(--space-3);font-size:11px;opacity:.5;line-height:1.5;">All HMO copays apply in-network only. Out-of-network care is not covered and not modeled here.</div>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div>
+        <div class="card" id="calc-results">
+          <h3>Cost Breakdown</h3>
+          <div id="calc-plan-name" style="font-family:'Instrument Serif',serif;font-size:18px;margin-bottom:var(--space-4);line-height:1.3;"></div>
+
+          <div id="calc-output">
+            <div style="opacity:.5;font-size:13px;">Select a plan to see your estimate.</div>
+          </div>
+        </div>
+
+        <!-- Compare top 3 -->
+        <div class="card" style="margin-top:var(--space-4);">
+          <h3>Quick Compare — Top 3 by Total Cost</h3>
+          <div id="top3-output" style="font-size:13px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer note -->
+  <div style="padding:var(--space-8) 0;opacity:.45;font-size:12px;line-height:1.6;border-top:1px solid var(--color-base-300);margin-top:var(--space-8);">
+    California HMO plans are not available if you need regular care in another state. Estimates are based on the plan data provided and simplified cost modeling. Actual costs depend on specific services, negotiated rates, and provider network status. Consult plan documents for definitive coverage details. Premium data from Justworks Aetna 2026 rates.
+  </div>
+
+</div>
+</main>
+
+<script>
+// ── Plan data ─────────────────────────────────────────────────────────────────
+const PLANS = [
+  { code:'CA1', name:'AET CAHMO 10/25 0/100%',       net:'HMO',     avn:false, ded:0,    famDed:0,    pcpCopay:10,  specCopay:25, ucCopay:75,  erCopay:350, erAfterDed:false, oopInd:3000,  oopFam:6000,  rxDedInd:150, rxDedFam:450, rxGen:15, rxBrand:35, rxNF:60, prem:{emp:1146.60, emp_spouse:2612.37, emp_children:2274.12, family:3514.38} },
+  { code:'CA2', name:'AET CAHMO 30/60 0/100%',       net:'HMO',     avn:false, ded:0,    famDed:0,    pcpCopay:30,  specCopay:60, ucCopay:75,  erCopay:350, erAfterDed:false, oopInd:6000,  oopFam:12000, rxDedInd:150, rxDedFam:450, rxGen:15, rxBrand:35, rxNF:60, prem:{emp:967.00,  emp_spouse:2199.29, emp_children:1914.91, family:2957.62} },
+  { code:'CA3', name:'AET AVN CAHMO 20/50 0/100%',   net:'HMO-AVN', avn:true,  ded:0,    famDed:0,    pcpCopay:20,  specCopay:50, ucCopay:75,  erCopay:350, erAfterDed:false, oopInd:4000,  oopFam:8000,  rxDedInd:150, rxDedFam:450, rxGen:15, rxBrand:35, rxNF:60, prem:{emp:812.62,  emp_spouse:1844.22, emp_children:1606.16, family:2479.05} },
+  { code:'CA4', name:'AET CAHMO 40/70 2000/100%',    net:'HMO',     avn:false, ded:2000, famDed:4000, pcpCopay:40,  specCopay:70, ucCopay:100, erCopay:350, erAfterDed:true,  oopInd:7000,  oopFam:14000, rxDedInd:150, rxDedFam:450, rxGen:15, rxBrand:35, rxNF:60, prem:{emp:772.78,  emp_spouse:1752.59, emp_children:1526.48, family:2355.55} },
+  { code:'CA5', name:'AET AVN CAHMO 40/70 1000/100%',net:'HMO-AVN', avn:true,  ded:1000, famDed:2000, pcpCopay:40,  specCopay:70, ucCopay:100, erCopay:350, erAfterDed:true,  oopInd:7000,  oopFam:14000, rxDedInd:150, rxDedFam:450, rxGen:15, rxBrand:35, rxNF:60, prem:{emp:678.92,  emp_spouse:1536.71, emp_children:1338.76, family:2064.58} },
+];
+
+// ── Table rendering ────────────────────────────────────────────────────────────
+let sortCol = null, sortDir = 1;
+let activeFilter = 'all';
+
+function fmt(n) { return '$' + n.toLocaleString(); }
+
+function renderTable() {
+  let data = [...PLANS];
+  if (activeFilter === 'no-ded')  data = data.filter(p => p.ded === 0);
+  if (activeFilter === 'avn')     data = data.filter(p => p.avn);
+  if (activeFilter === 'full-hmo') data = data.filter(p => !p.avn);
+  if (sortCol === 'ded')  data.sort((a,b) => (a.ded - b.ded) * sortDir);
+  if (sortCol === 'prem') data.sort((a,b) => (a.prem.family - b.prem.family) * sortDir);
+
+  const tbody = document.getElementById('plan-tbody');
+  tbody.innerHTML = data.map(p => {
+    const isTop = ['CA5','CA3'].includes(p.code);
+    const avnBadge = p.avn
+      ? `<span class="badge badge-warning" style="margin-left:6px;">AVN</span>`
+      : '';
+    const erNote = p.erAfterDed
+      ? `<span style="font-size:10px;opacity:.65;display:block;margin-top:2px;">after ded</span>`
+      : '';
+    return `<tr class="${isTop ? 'highlight-row' : ''}">
+      <td><span class="mono" style="font-weight:600;">${p.code}</span></td>
+      <td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name.replace('AET ','')}</td>
+      <td><span class="badge badge-neutral">${p.net}</span>${avnBadge}</td>
+      <td class="mono">${p.ded === 0 ? '<span style="color:var(--color-success);font-weight:600;">$0</span>' : fmt(p.ded)}</td>
+      <td class="mono">${p.famDed === 0 ? '<span style="color:var(--color-success);font-weight:600;">$0</span>' : fmt(p.famDed)}</td>
+      <td class="mono">$${p.pcpCopay}</td>
+      <td class="mono">$${p.specCopay}</td>
+      <td class="mono">$${p.ucCopay}</td>
+      <td class="mono" style="white-space:nowrap;">$${p.erCopay}${erNote}</td>
+      <td class="mono">${fmt(p.oopFam)}</td>
+      <td style="font-size:11px;white-space:nowrap;opacity:.7;">$${p.rxDedInd} / $${p.rxDedFam}</td>
+      <td class="mono">$${p.rxGen}</td>
+      <td class="mono">$${p.rxBrand}</td>
+      <td class="mono">$${p.rxNF}</td>
+      <td class="mono" style="font-weight:600;">${fmt(p.prem.family)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function sortTable(col) {
+  if (sortCol === col) sortDir *= -1; else { sortCol = col; sortDir = 1; }
+  document.querySelectorAll('th.sortable').forEach(th => th.classList.remove('sort-asc','sort-desc'));
+  const th = document.getElementById('th-' + col);
+  th.classList.add(sortDir === 1 ? 'sort-asc' : 'sort-desc');
+  renderTable();
+}
+
+function filterPlans(f, el) {
+  activeFilter = f;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  sortCol = null; sortDir = 1;
+  document.querySelectorAll('th.sortable').forEach(th => th.classList.remove('sort-asc','sort-desc'));
+  renderTable();
+}
+
+// ── Calculator ─────────────────────────────────────────────────────────────────
+// Tier-to-Rx-deductible mapping:
+// family / emp_children tiers -> use rxDedFam ($450)
+// emp / emp_spouse tiers -> use rxDedInd ($150) per person (simplified: use rxDedInd for single, rxDedFam for multi)
+function getRxDed(plan, tier) {
+  if (tier === 'emp') return plan.rxDedInd;
+  return plan.rxDedFam;
+}
+
+function estimateCost(plan, tier, usage) {
+  const annualPremium = plan.prem[tier] * 12;
+  const { pcp, spec, uc, er, rxGen, rxBrand, rxNF, lab } = usage;
+  const famOop = plan.oopFam;
+
+  // Visit costs — HMO copay model
+  // For plans with erAfterDed, ER copay only applies after deductible
+  // For plans with deductible > 0 and erAfterDed, first model deductible spend then copays
+  let visitCosts = 0;
+
+  if (plan.ded > 0) {
+    // Deductible applies to medical visits before copays kick in
+    // Estimate: each PCP visit ~$180, spec ~$320, UC ~$220, ER ~$1,800 (avg allowed)
+    const pcpAmt = pcp * 180;
+    const specAmt = spec * 320;
+    const ucAmt = uc * 220;
+    const erAmt = er * 1800;
+    const labAmt = lab * 150;
+    const totalVisitRaw = pcpAmt + specAmt + ucAmt + erAmt + labAmt;
+    const famDed = plan.famDed;
+
+    if (totalVisitRaw <= famDed) {
+      // All visit costs go toward deductible
+      visitCosts = totalVisitRaw;
+    } else {
+      // Deductible met, then copays apply
+      visitCosts = famDed;
+      const remainPcp  = Math.max(0, pcp  - Math.floor(famDed / 180));
+      const remainSpec = Math.max(0, spec - Math.floor(famDed / 320));
+      const remainUc   = Math.max(0, uc   - Math.floor(famDed / 220));
+      const remainEr   = Math.max(0, er   - Math.floor(famDed / 1800));
+      const remainLab  = Math.max(0, lab  - Math.floor(famDed / 150));
+      // After deductible, copay applies
+      visitCosts += remainPcp * plan.pcpCopay + remainSpec * plan.specCopay
+                  + remainUc * plan.ucCopay + remainEr * plan.erCopay
+                  + remainLab * 30;
+    }
+  } else {
+    // No deductible — flat copays from visit one
+    visitCosts = pcp * plan.pcpCopay + spec * plan.specCopay
+               + uc * plan.ucCopay + er * plan.erCopay
+               + lab * 30;
+  }
+
+  // Rx costs — $150 ind / $450 fam Rx deductible before copays
+  // Estimate: at full cost until Rx deductible met, then flat copays
+  const rxDed = getRxDed(plan, tier);
+  const annualRxGenFills   = rxGen * 12;
+  const annualRxBrandFills = rxBrand * 12;
+  const annualRxNFFills    = rxNF * 12;
+
+  // Average full cost per fill (estimated): generic ~$25, brand ~$120, NF ~$200
+  const rawRxCost = annualRxGenFills * 25 + annualRxBrandFills * 120 + annualRxNFFills * 200;
+  let rxCosts = 0;
+
+  if (rawRxCost <= rxDed) {
+    // Don't even hit the Rx deductible — pay full price for all
+    rxCosts = rawRxCost;
+  } else {
+    // Pay Rx deductible, then copays on remaining fills
+    rxCosts = rxDed;
+    // Estimate fills used to exhaust deductible (weighted average)
+    const avgRawPerFill = (annualRxGenFills + annualRxBrandFills + annualRxNFFills) > 0
+      ? rawRxCost / (annualRxGenFills + annualRxBrandFills + annualRxNFFills)
+      : 25;
+    const fillsBeforeDed = Math.floor(rxDed / Math.max(avgRawPerFill, 1));
+    const totalFills = annualRxGenFills + annualRxBrandFills + annualRxNFFills;
+    const remainingFills = Math.max(0, totalFills - fillsBeforeDed);
+    // Remaining fills at copay, proportional split
+    const ratio = totalFills > 0 ? remainingFills / totalFills : 0;
+    rxCosts += (annualRxGenFills * ratio) * plan.rxGen
+             + (annualRxBrandFills * ratio) * plan.rxBrand
+             + (annualRxNFFills * ratio) * plan.rxNF;
+  }
+
+  let medicalCosts = Math.min(visitCosts + rxCosts, famOop);
+
+  return { annualPremium, visitCosts: Math.min(visitCosts, famOop), rxCosts, medicalCosts, total: annualPremium + medicalCosts };
+}
+
+function calculate() {
+  const planCode = document.getElementById('calc-plan').value;
+  const tier = document.getElementById('calc-tier').value;
+  const usage = {
+    pcp:     parseInt(document.getElementById('calc-pcp').value)    || 0,
+    spec:    parseInt(document.getElementById('calc-spec').value)   || 0,
+    uc:      parseInt(document.getElementById('calc-uc').value)     || 0,
+    er:      parseInt(document.getElementById('calc-er').value)     || 0,
+    rxGen:   parseInt(document.getElementById('calc-rx-gen').value) || 0,
+    rxBrand: parseInt(document.getElementById('calc-rx-brand').value)|| 0,
+    rxNF:    parseInt(document.getElementById('calc-rx-nf').value)  || 0,
+    lab:     parseInt(document.getElementById('calc-lab').value)    || 0,
+  };
+
+  const plan = PLANS.find(p => p.code === planCode);
+  if (!plan) return;
+
+  const { annualPremium, visitCosts, rxCosts, medicalCosts, total } = estimateCost(plan, tier, usage);
+
+  document.getElementById('calc-plan-name').innerHTML =
+    `<span class="mono" style="font-size:13px;font-weight:700;color:var(--color-primary);margin-right:8px;">${plan.code}</span>${plan.name.replace('AET ','')}`;
+
+  const avnNote = plan.avn
+    ? `<div style="margin-top:var(--space-3);padding:var(--space-3);background:color-mix(in oklab,var(--color-warning) 8%,var(--color-base-100));border-radius:var(--radius-md);font-size:12px;color:var(--color-warning);">AVN plan — verify all providers are in the Aetna Vital Network before this estimate is meaningful.</div>`
+    : '';
+
+  const rxDed = getRxDed(plan, tier);
+  const annualRxFills = (usage.rxGen + usage.rxBrand + usage.rxNF) * 12;
+  const rxDetail = (usage.rxGen || usage.rxBrand || usage.rxNF)
+    ? `<div style="font-size:11px;opacity:.55;padding:2px 0 6px;line-height:1.6;">`
+      + (usage.rxGen   ? `Generic: ${usage.rxGen}/mo &times; $${plan.rxGen} copay &nbsp;` : '')
+      + (usage.rxBrand ? `Brand: ${usage.rxBrand}/mo &times; $${plan.rxBrand} copay &nbsp;` : '')
+      + (usage.rxNF    ? `Non-form: ${usage.rxNF}/mo &times; $${plan.rxNF} copay` : '')
+      + `<br><span style="opacity:.8;">Rx deductible: $${rxDed} applies before copays kick in</span>`
+      + `</div>`
+    : '';
+
+  const dedNote = plan.ded > 0
+    ? `<div style="font-size:11px;opacity:.5;margin-top:var(--space-2);line-height:1.5;">$${plan.famDed.toLocaleString()} family deductible applies before copays. Visit costs above include deductible spend.</div>`
+    : '';
+
+  document.getElementById('calc-output').innerHTML = `
+    <div class="result-row"><span style="opacity:.7;">Annual Premiums</span><span class="result-val">${fmt(Math.round(annualPremium))}</span></div>
+    <div class="result-row"><span style="opacity:.7;">Medical &amp; Visits OOP</span><span class="result-val">${fmt(Math.round(visitCosts))}</span></div>
+    <div class="result-row"><span style="opacity:.7;">Prescription Costs <span style="font-size:10px;opacity:.7;">(incl. Rx ded)</span></span><span class="result-val">${fmt(Math.round(rxCosts))}</span></div>
+    ${rxDetail}
+    <div class="result-row" style="font-size:11px;opacity:.45;padding-top:2px;"><span>Deductible: ${fmt(plan.famDed)} fam &nbsp;|&nbsp; OOP Max: ${fmt(plan.oopFam)} fam</span></div>
+    <div class="result-total"><span>Estimated Annual Total</span><span class="result-val" style="color:var(--color-primary);">${fmt(Math.round(total))}</span></div>
+    ${dedNote}
+    ${avnNote}
+  `;
+
+  renderTop3(tier, usage);
+}
+
+function renderTop3(tier, usage) {
+  const scored = PLANS.map(p => ({ ...p, ...estimateCost(p, tier, usage) }))
+    .sort((a, b) => a.total - b.total)
+    .slice(0, 3);
+
+  const colors = ['var(--color-success)', 'var(--color-primary)', 'var(--color-warning)'];
+  document.getElementById('top3-output').innerHTML = scored.map((p, i) => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--color-base-300);${i===2?'border-bottom:none':''}">
+      <div>
+        <span style="font-weight:600;color:${colors[i]};">#${i+1}</span>
+        <span class="mono" style="font-weight:700;font-size:12px;color:var(--color-primary);margin-left:8px;">${p.code}</span>
+        <span style="margin-left:6px;">${p.name.replace('AET ','')}</span>
+        ${p.avn ? '<span class="badge badge-warning" style="margin-left:6px;font-size:10px;">AVN</span>' : ''}
+      </div>
+      <span class="mono" style="font-weight:600;">${fmt(Math.round(p.total))}</span>
+    </div>
+  `).join('');
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+function initCalcSelect() {
+  const sel = document.getElementById('calc-plan');
+  sel.innerHTML = PLANS.map(p =>
+    `<option value="${p.code}"${p.code === 'CA5' ? ' selected' : ''}>${p.code} — ${p.name.replace('AET ','')}</option>`
+  ).join('');
+}
+
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'phantom-dark';
+  const next = isDark ? 'phantom-light' : 'phantom-dark';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('phantom-theme', next);
+  document.getElementById('theme-icon-sun').style.display  = isDark ? 'block' : 'none';
+  document.getElementById('theme-icon-moon').style.display = isDark ? 'none'  : 'block';
+}
+
+function initThemeIcon() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'phantom-dark';
+  document.getElementById('theme-icon-sun').style.display  = isDark ? 'block' : 'none';
+  document.getElementById('theme-icon-moon').style.display = isDark ? 'none'  : 'block';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  renderTable();
+  initCalcSelect();
+  initThemeIcon();
+  calculate();
+});
+</script>
+
+<script>
+// ── Password gate logic ────────────────────────────────────────────────────
+const PW_HASH = '996996923650af770e7f091cfb6f1d878a1af46df21ee8387d7b9cb939b095c2';
+const SESSION_KEY = 'mpg_unlocked';
+
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function checkPassword(e) {
+  e.preventDefault();
+  const val = document.getElementById('pw-input').value.trim();
+  const errEl = document.getElementById('pw-error');
+  if (!val) return;
+  const hash = await sha256(val);
+  if (hash === PW_HASH) {
+    sessionStorage.setItem(SESSION_KEY, '1');
+    const gate = document.getElementById('pw-gate');
+    gate.style.transition = 'opacity 0.3s ease';
+    gate.style.opacity = '0';
+    setTimeout(() => gate.remove(), 320);
+  } else {
+    errEl.textContent = 'Incorrect password.';
+    document.getElementById('pw-input').value = '';
+    document.getElementById('pw-input').focus();
+    setTimeout(() => errEl.textContent = '', 3000);
+  }
+}
+
+// Check on load — skip gate if already unlocked this session
+if (sessionStorage.getItem(SESSION_KEY) === '1') {
+  document.getElementById('pw-gate').remove();
+}
+</script>
+</body>
+</html>

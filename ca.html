@@ -499,6 +499,7 @@
             <th>Specialist</th>
             <th>UC</th>
             <th>ER</th>
+            <th>Surgery</th>
             <th>OOP Max Fam</th>
             <th>Rx Ded</th>
             <th>Generic</th>
@@ -577,8 +578,12 @@
               <label class="form-label">Lab / Imaging / yr</label>
               <input type="number" class="form-input" id="calc-lab" value="2" min="0" max="20" oninput="calculate()">
             </div>
+            <div class="form-row" style="margin-bottom:0;">
+              <label class="form-label">Outpatient Surgeries / yr</label>
+              <input type="number" class="form-input" id="calc-surg" value="0" min="0" max="5" oninput="calculate()">
+            </div>
           </div>
-          <div style="margin-top:var(--space-3);font-size:11px;opacity:.5;line-height:1.5;">All HMO copays apply in-network only. Out-of-network care is not covered and not modeled here.</div>
+          <div style="margin-top:var(--space-3);font-size:11px;opacity:.5;line-height:1.5;">Mail order (90-day supply) = 2x copay shown. Surgery uses avg $8,000 outpatient cost (est.).</div>
         </div>
       </div>
 
@@ -613,11 +618,11 @@
 <script>
 // ── Plan data ─────────────────────────────────────────────────────────────────
 const PLANS = [
-  { code:'CA1', name:'AET CAHMO 10/25 0/100%',       net:'HMO',     avn:false, ded:0,    famDed:0,    pcpCopay:10,  specCopay:25, ucCopay:75,  erCopay:350, erAfterDed:false, oopInd:3000,  oopFam:6000,  rxDedInd:150, rxDedFam:450, rxGen:15, rxBrand:35, rxNF:60, prem:{emp:1146.60, emp_spouse:2612.37, emp_children:2274.12, family:3514.38} },
-  { code:'CA2', name:'AET CAHMO 30/60 0/100%',       net:'HMO',     avn:false, ded:0,    famDed:0,    pcpCopay:30,  specCopay:60, ucCopay:75,  erCopay:350, erAfterDed:false, oopInd:6000,  oopFam:12000, rxDedInd:150, rxDedFam:450, rxGen:15, rxBrand:35, rxNF:60, prem:{emp:967.00,  emp_spouse:2199.29, emp_children:1914.91, family:2957.62} },
-  { code:'CA3', name:'AET AVN CAHMO 20/50 0/100%',   net:'HMO-AVN', avn:true,  ded:0,    famDed:0,    pcpCopay:20,  specCopay:50, ucCopay:75,  erCopay:350, erAfterDed:false, oopInd:4000,  oopFam:8000,  rxDedInd:150, rxDedFam:450, rxGen:15, rxBrand:35, rxNF:60, prem:{emp:812.62,  emp_spouse:1844.22, emp_children:1606.16, family:2479.05} },
-  { code:'CA4', name:'AET CAHMO 40/70 2000/100%',    net:'HMO',     avn:false, ded:2000, famDed:4000, pcpCopay:40,  specCopay:70, ucCopay:100, erCopay:350, erAfterDed:true,  oopInd:7000,  oopFam:14000, rxDedInd:150, rxDedFam:450, rxGen:15, rxBrand:35, rxNF:60, prem:{emp:772.78,  emp_spouse:1752.59, emp_children:1526.48, family:2355.55} },
-  { code:'CA5', name:'AET AVN CAHMO 40/70 1000/100%',net:'HMO-AVN', avn:true,  ded:1000, famDed:2000, pcpCopay:40,  specCopay:70, ucCopay:100, erCopay:350, erAfterDed:true,  oopInd:7000,  oopFam:14000, rxDedInd:150, rxDedFam:450, rxGen:15, rxBrand:35, rxNF:60, prem:{emp:678.92,  emp_spouse:1536.71, emp_children:1338.76, family:2064.58} },
+  { code:'CA1', name:'AET CAHMO 10/25 0/100%',       net:'HMO',     avn:false, ded:0,    famDed:0,    pcpCopay:10,  specCopay:25, ucCopay:75,  erCopay:350, erAfterDed:false, surgCopay:500, surgAfterDed:false, oopInd:3000,  oopFam:6000,  rxDedInd:150, rxDedFam:450, rxGen:15, rxBrand:35, rxNF:60, prem:{emp:1146.60, emp_spouse:2612.37, emp_children:2274.12, family:3514.38} },
+  { code:'CA2', name:'AET CAHMO 30/60 0/100%',       net:'HMO',     avn:false, ded:0,    famDed:0,    pcpCopay:30,  specCopay:60, ucCopay:75,  erCopay:350, erAfterDed:false, surgCopay:500, surgAfterDed:false, oopInd:6000,  oopFam:12000, rxDedInd:150, rxDedFam:450, rxGen:15, rxBrand:35, rxNF:60, prem:{emp:967.00,  emp_spouse:2199.29, emp_children:1914.91, family:2957.62} },
+  { code:'CA3', name:'AET AVN CAHMO 20/50 0/100%',   net:'HMO-AVN', avn:true,  ded:0,    famDed:0,    pcpCopay:20,  specCopay:50, ucCopay:75,  erCopay:350, erAfterDed:false, surgCopay:500, surgAfterDed:false, oopInd:4000,  oopFam:8000,  rxDedInd:150, rxDedFam:450, rxGen:15, rxBrand:35, rxNF:60, prem:{emp:812.62,  emp_spouse:1844.22, emp_children:1606.16, family:2479.05} },
+  { code:'CA4', name:'AET CAHMO 40/70 2000/100%',    net:'HMO',     avn:false, ded:2000, famDed:4000, pcpCopay:40,  specCopay:70, ucCopay:100, erCopay:350, erAfterDed:true,  surgCopay:0,   surgAfterDed:true,  oopInd:7000,  oopFam:14000, rxDedInd:150, rxDedFam:450, rxGen:15, rxBrand:35, rxNF:60, prem:{emp:772.78,  emp_spouse:1752.59, emp_children:1526.48, family:2355.55} },
+  { code:'CA5', name:'AET AVN CAHMO 40/70 1000/100%',net:'HMO-AVN', avn:true,  ded:1000, famDed:2000, pcpCopay:40,  specCopay:70, ucCopay:100, erCopay:350, erAfterDed:true,  surgCopay:0,   surgAfterDed:true,  oopInd:7000,  oopFam:14000, rxDedInd:150, rxDedFam:450, rxGen:15, rxBrand:35, rxNF:60, prem:{emp:678.92,  emp_spouse:1536.71, emp_children:1338.76, family:2064.58} },
 ];
 
 // ── Table rendering ────────────────────────────────────────────────────────────
@@ -653,6 +658,7 @@ function renderTable() {
       <td class="mono">$${p.specCopay}</td>
       <td class="mono">$${p.ucCopay}</td>
       <td class="mono" style="white-space:nowrap;">$${p.erCopay}${erNote}</td>
+      <td style="font-size:11px;white-space:nowrap;">${p.surgAfterDed ? '<span style="color:var(--color-success);">100% after ded</span>' : '$'+p.surgCopay+' copay'}</td>
       <td class="mono">${fmt(p.oopFam)}</td>
       <td style="font-size:11px;white-space:nowrap;opacity:.7;">$${p.rxDedInd} / $${p.rxDedFam}</td>
       <td class="mono">$${p.rxGen}</td>
@@ -691,7 +697,7 @@ function getRxDed(plan, tier) {
 
 function estimateCost(plan, tier, usage) {
   const annualPremium = plan.prem[tier] * 12;
-  const { pcp, spec, uc, er, rxGen, rxBrand, rxNF, lab } = usage;
+  const { pcp, spec, uc, er, rxGen, rxBrand, rxNF, lab, surg } = usage;
   const famOop = plan.oopFam;
 
   // Visit costs — HMO copay model
@@ -706,8 +712,9 @@ function estimateCost(plan, tier, usage) {
     const specAmt = spec * 320;
     const ucAmt = uc * 220;
     const erAmt = er * 1800;
+    const surgAmt = surg * 8000;
     const labAmt = lab * 150;
-    const totalVisitRaw = pcpAmt + specAmt + ucAmt + erAmt + labAmt;
+    const totalVisitRaw = pcpAmt + specAmt + ucAmt + erAmt + surgAmt + labAmt;
     const famDed = plan.famDed;
 
     if (totalVisitRaw <= famDed) {
@@ -728,9 +735,10 @@ function estimateCost(plan, tier, usage) {
     }
   } else {
     // No deductible — flat copays from visit one
+    const surgCost = plan.surgAfterDed ? 0 : surg * plan.surgCopay;
     visitCosts = pcp * plan.pcpCopay + spec * plan.specCopay
                + uc * plan.ucCopay + er * plan.erCopay
-               + lab * 30;
+               + lab * 30 + surgCost;
   }
 
   // Rx costs — $150 ind / $450 fam Rx deductible before copays
@@ -781,6 +789,7 @@ function calculate() {
     rxBrand: parseInt(document.getElementById('calc-rx-brand').value)|| 0,
     rxNF:    parseInt(document.getElementById('calc-rx-nf').value)  || 0,
     lab:     parseInt(document.getElementById('calc-lab').value)    || 0,
+    surg:    parseInt(document.getElementById('calc-surg').value)   || 0,
   };
 
   const plan = PLANS.find(p => p.code === planCode);
@@ -810,9 +819,18 @@ function calculate() {
     ? `<div style="font-size:11px;opacity:.5;margin-top:var(--space-2);line-height:1.5;">$${plan.famDed.toLocaleString()} family deductible applies before copays. Visit costs above include deductible spend.</div>`
     : '';
 
+  // Compute surgery display cost
+  const surgDisp = usage.surg > 0
+    ? (plan.surgAfterDed ? 0 : usage.surg * plan.surgCopay)
+    : 0;
+  const surgLine = usage.surg > 0
+    ? `<div style="font-size:11px;opacity:.55;padding:2px 0 4px;">Surgery: ${usage.surg} procedure${usage.surg>1?'s':''} — ${plan.surgAfterDed ? '100% covered after deductible' : '$'+plan.surgCopay+' copay each = '+fmt(surgDisp)}</div>`
+    : '';
+
   document.getElementById('calc-output').innerHTML = `
     <div class="result-row"><span style="opacity:.7;">Annual Premiums</span><span class="result-val">${fmt(Math.round(annualPremium))}</span></div>
     <div class="result-row"><span style="opacity:.7;">Medical &amp; Visits OOP</span><span class="result-val">${fmt(Math.round(visitCosts))}</span></div>
+    ${surgLine}
     <div class="result-row"><span style="opacity:.7;">Prescription Costs <span style="font-size:10px;opacity:.7;">(incl. Rx ded)</span></span><span class="result-val">${fmt(Math.round(rxCosts))}</span></div>
     ${rxDetail}
     <div class="result-row" style="font-size:11px;opacity:.45;padding-top:2px;"><span>Deductible: ${fmt(plan.famDed)} fam &nbsp;|&nbsp; OOP Max: ${fmt(plan.oopFam)} fam</span></div>

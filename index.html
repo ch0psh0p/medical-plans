@@ -201,7 +201,14 @@
 
 <nav class="nav">
   <a class="nav-brand" href="#">Medical Plan <span>Comparison</span></a>
-  <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+
+  <!-- Plan switcher -->
+  <div style="display:flex;gap:4px;margin:0 auto;">
+    <a href="index.html" style="padding:5px 14px;border-radius:var(--radius-pill);font-size:12px;font-weight:500;text-decoration:none;background:var(--color-primary);color:var(--color-primary-content);border:1px solid var(--color-primary);">National</a>
+    <a href="ca.html" style="padding:5px 14px;border-radius:var(--radius-pill);font-size:12px;font-weight:500;text-decoration:none;border:1px solid var(--color-base-300);color:var(--color-base-content);background:transparent;">California</a>
+  </div>
+
+  <div style="display:flex;gap:8px;align-items:center;">
     <span style="font-size:12px;opacity:.5;">Aetna via Justworks — 2026</span>
     <button class="theme-btn" onclick="toggleTheme()" title="Toggle theme">
       <svg id="theme-icon-sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>

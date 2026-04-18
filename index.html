@@ -503,6 +503,9 @@
             <th>Coinsurance</th>
             <th>PCP Copay</th>
             <th>Spec. Copay</th>
+            <th>UC Copay</th>
+            <th>ER Copay</th>
+            <th>Surgery</th>
             <th class="sortable" onclick="sortTable('prem')" id="th-prem">Family Premium/mo</th>
             <th>OOP Max (Fam)</th>
             <th>Rx Deductible</th>
@@ -578,12 +581,40 @@
               <label class="form-label">Non-Formulary Rx / mo</label>
               <input type="number" class="form-input" id="calc-rx-nf" value="0" min="0" max="10" oninput="calculate()">
             </div>
+            <div class="form-row" style="margin-bottom:0;">
+              <label class="form-label">Outpatient Surgeries / yr</label>
+              <input type="number" class="form-input" id="calc-surg" value="0" min="0" max="5" oninput="calculate()">
+            </div>
           </div>
-          <div style="margin-top:var(--space-3);font-size:11px;opacity:.5;line-height:1.5;">Mail order (90-day supply) = 2x the copay shown above, saving one fill vs. 3 retail fills.</div>
+          <div style="margin-top:var(--space-3);font-size:11px;opacity:.5;line-height:1.5;">Mail order (90-day supply) = 2x the copay shown above, saving one fill vs. 3 retail fills. Surgery uses avg $8,000 outpatient cost.</div>
 
           <div class="form-row" style="margin-top:var(--space-4);margin-bottom:0;">
             <label class="form-label">Lab / Imaging Visits / yr</label>
             <input type="number" class="form-input" id="calc-lab" value="2" min="0" max="20" oninput="calculate()">
+          </div>
+
+          <!-- HSA section — only shown when HSA plan selected -->
+          <div id="hsa-inputs" style="display:none;margin-top:var(--space-5);padding:var(--space-4);background:color-mix(in oklab,var(--color-success) 7%,var(--color-base-100));border-radius:var(--radius-md);border:1px solid color-mix(in oklab,var(--color-success) 20%,transparent);">
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--color-success);margin-bottom:var(--space-3);">HSA Tax Advantage</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3);">
+              <div>
+                <label class="form-label" style="font-size:11px;">Annual HSA Contribution</label>
+                <input type="number" class="form-input" id="calc-hsa" value="4000" min="0" max="8550" oninput="calculate()" style="font-size:12px;">
+                <div style="font-size:10px;opacity:.5;margin-top:3px;">2026 family max: $8,550</div>
+              </div>
+              <div>
+                <label class="form-label" style="font-size:11px;">Marginal Tax Rate %</label>
+                <select class="form-input form-select" id="calc-tax-rate" onchange="calculate()" style="font-size:12px;">
+                  <option value="12">12% (federal)</option>
+                  <option value="22" selected>22% (federal)</option>
+                  <option value="24">24% (federal)</option>
+                  <option value="32">32% (federal)</option>
+                  <option value="35">35% (federal)</option>
+                  <option value="37">37% (federal)</option>
+                </select>
+                <div style="font-size:10px;opacity:.5;margin-top:3px;">Add ~5–13% for state tax</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -665,6 +696,9 @@ function renderTable() {
       <td class="mono">${p.coin}%</td>
       <td style="font-size:12px;">${p.pcpRaw}</td>
       <td style="font-size:12px;">${p.specRaw}</td>
+      <td style="font-size:12px;">${p.ucRaw}</td>
+      <td style="font-size:12px;">${p.erRaw}</td>
+      <td style="font-size:12px;white-space:nowrap;">${p.coin===0 ? '<span style="color:var(--color-success);font-size:11px;">100% after ded</span>' : '<span style="font-size:11px;">' + p.coin + '% coinsur.</span>'}</td>
       <td class="mono" style="font-weight:600;">${fmt(p.prem.family)}</td>
       <td class="mono">${fmt(p.oopFam)}</td>
       <td>${p.rxDed ? '<span class="badge badge-warning" style="font-size:10px;">Med ded first</span>' : '<span style="opacity:.4;font-size:12px;">None</span>'}</td>
@@ -708,7 +742,7 @@ function parseCopay(raw) {
 
 function estimateCost(plan, tier, usage) {
   const annualPremium = plan.prem[tier] * 12;
-  const { pcp, spec, uc, er, rxGen, rxBrand, rxNF, lab } = usage;
+  const { pcp, spec, uc, er, rxGen, rxBrand, rxNF, lab, surg } = usage;
 
   // For HDHP: all costs go toward deductible first, then coinsurance/copay
   // For non-HDHP: copays apply immediately; deductible mainly for hospital/facility
@@ -724,11 +758,12 @@ function estimateCost(plan, tier, usage) {
     const specCost = spec * 320;
     const ucCost = uc * 220;
     const erCost = er * 1800;
+    const surgCost = surg * 8000;
     const rxGenCost = rxGen * 12 * 35;
     const rxBrandCost = rxBrand * 12 * 180;
     const rxNFCost = rxNF * 12 * 280;
     const labCost = lab * 150;
-    const totalMedical = pcpCost + specCost + ucCost + erCost + rxGenCost + rxBrandCost + rxNFCost + labCost;
+    const totalMedical = pcpCost + specCost + ucCost + erCost + surgCost + rxGenCost + rxBrandCost + rxNFCost + labCost;
 
     if (totalMedical <= famDed) {
       medicalCosts = totalMedical; // pay full until deductible
@@ -751,9 +786,12 @@ function estimateCost(plan, tier, usage) {
     const copayTotal = pcp*pcpCopay + spec*specCopay + uc*ucCopay + er*erCopay;
     const rxTotal = rxGen*12*plan.rxGen + rxBrand*12*plan.rxBrand + rxNF*12*plan.rxNF;
     const labTotal = lab * (plan.coin > 0 ? 30 + 150*coin : 30);
+    // Surgery: subject to deductible then coinsurance. Avg outpatient cost $8,000/procedure.
+    const surgRaw = surg * 8000;
+    const surgPatient = surgRaw > 0 ? Math.min(plan.famDed, surgRaw) + Math.max(0, surgRaw - plan.famDed) * coin : 0;
 
     // Deductible applies to facility/surgery costs; for regular visits just copays
-    medicalCosts = copayTotal + rxTotal + labTotal;
+    medicalCosts = copayTotal + rxTotal + labTotal + surgPatient;
     medicalCosts = Math.min(medicalCosts, famOop);
   }
 
@@ -772,6 +810,7 @@ function calculate() {
     rxBrand: parseInt(document.getElementById('calc-rx-brand').value)||0,
     rxNF: parseInt(document.getElementById('calc-rx-nf').value)||0,
     lab: parseInt(document.getElementById('calc-lab').value)||0,
+    surg: parseInt(document.getElementById('calc-surg').value)||0,
   };
 
   const plan = PLANS.find(p=>p.code===planCode);
@@ -782,7 +821,20 @@ function calculate() {
   document.getElementById('calc-plan-name').innerHTML = `<span class="mono" style="font-size:13px;font-weight:700;color:var(--color-primary);margin-right:8px;">${plan.code}</span>${plan.name.replace('AET ','').replace(' JNY','')}`;
 
   const isHDHP = plan.hdphp;
-  const hsaNote = plan.hsa ? `<div style="margin-top:var(--space-3);padding:var(--space-3);background:color-mix(in oklab,var(--color-success) 8%,var(--color-base-100));border-radius:var(--radius-md);font-size:12px;color:var(--color-success);">HSA eligible — 2026 family contribution limit is $8,550. Contributions reduce your taxable income.</div>` : '';
+
+  // Show/hide HSA inputs
+  const hsaInputsEl = document.getElementById('hsa-inputs');
+  if (plan.hsa) {
+    hsaInputsEl.style.display = 'block';
+  } else {
+    hsaInputsEl.style.display = 'none';
+  }
+
+  // HSA tax savings
+  const hsaContrib = plan.hsa ? (parseInt(document.getElementById('calc-hsa').value)||0) : 0;
+  const taxRate = plan.hsa ? (parseFloat(document.getElementById('calc-tax-rate').value)||0) : 0;
+  const hsaSavings = Math.round(hsaContrib * (taxRate / 100));
+  const hsaNote = '';
 
   // Compute Rx cost for display
   const rxGenAmt  = usage.rxGen;
@@ -805,15 +857,34 @@ function calculate() {
       + (rxNFAmt ? `Non-form: ${rxNFAmt}/mo &times; ${plan.rxDed&&plan.rxNF===0?'$0 after ded':'$'+plan.rxNF} = ${fmt(rxNFAmt*12*(plan.hdphp?280:plan.rxNF))}/yr` : '')
       + `</div>` : '';
 
+  // Surgery display cost
+  const surgAmt = usage.surg;
+  let surgDisplayCost = 0;
+  if (isHDHP) {
+    surgDisplayCost = surgAmt * 8000; // shown as part of medical pool
+  } else {
+    const coin = plan.coin / 100;
+    const surgRaw = surgAmt * 8000;
+    surgDisplayCost = surgRaw > 0 ? Math.min(plan.famDed, surgRaw) + Math.max(0, surgRaw - plan.famDed) * coin : 0;
+  }
+
   document.getElementById('calc-output').innerHTML = `
     <div class="result-row"><span style="opacity:.7;">Annual Premiums</span><span class="result-val">${fmt(Math.round(annualPremium))}</span></div>
     <div class="result-row"><span style="opacity:.7;">Medical &amp; Visits OOP</span><span class="result-val">${fmt(Math.round(medicalCosts - rxDisplayCost))}</span></div>
+    ${surgAmt > 0 ? `<div style="font-size:11px;opacity:.55;padding:2px 0 4px;">Outpatient surgery: ${surgAmt} procedure${surgAmt>1?'s':''} &times; avg $8,000 = ${fmt(Math.round(surgDisplayCost))} patient cost</div>` : ''}
     <div class="result-row"><span style="opacity:.7;">Prescription Costs${rxLineNote}</span><span class="result-val">${fmt(Math.round(rxDisplayCost))}</span></div>
     ${rxDetail}
     <div class="result-row" style="font-size:11px;opacity:.45;padding-top:2px;"><span>Deductible: ${fmt(plan.famDed)} fam &nbsp;|&nbsp; OOP Max: ${fmt(plan.oopFam)} fam</span></div>
     <div class="result-total"><span>Estimated Annual Total</span><span class="result-val" style="color:var(--color-primary);">${fmt(Math.round(total))}</span></div>
-    ${isHDHP ? `<div style="font-size:11px;opacity:.5;margin-top:var(--space-2);line-height:1.5;">HDHP Rx is estimated at full cost until deductible is met, then $0 (H2) or copay. Actual costs depend on plan year timing.</div>` : ''}
-    ${hsaNote}
+    ${isHDHP ? `<div style="font-size:11px;opacity:.5;margin-top:var(--space-2);line-height:1.5;">HDHP: all costs apply toward deductible first. Rx estimated at full cost until deductible met.</div>` : ''}
+    ${plan.hsa && hsaContrib > 0 ? `
+    <div style="margin-top:var(--space-3);padding:var(--space-3);background:color-mix(in oklab,var(--color-success) 8%,var(--color-base-100));border-radius:var(--radius-md);">
+      <div style="font-size:11px;font-weight:600;color:var(--color-success);margin-bottom:var(--space-2);">HSA Tax Advantage</div>
+      <div class="result-row" style="border-bottom:none;padding:4px 0;"><span style="font-size:12px;opacity:.8;">HSA contribution</span><span class="result-val" style="font-size:12px;">${fmt(hsaContrib)}/yr</span></div>
+      <div class="result-row" style="border-bottom:none;padding:4px 0;"><span style="font-size:12px;opacity:.8;">Tax savings @ ${taxRate}%</span><span class="result-val" style="font-size:12px;color:var(--color-success);">-${fmt(hsaSavings)}</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0 4px;font-weight:700;font-size:14px;border-top:1px solid color-mix(in oklab,var(--color-success) 20%,transparent);margin-top:4px;"><span>Net After-Tax Total</span><span class="mono" style="color:var(--color-success);">${fmt(Math.round(total - hsaSavings))}</span></div>
+      <div style="font-size:10px;opacity:.6;margin-top:4px;line-height:1.5;">HSA funds also accumulate tax-free for future medical expenses. 2026 family contribution limit: $8,550.</div>
+    </div>` : plan.hsa ? `<div style="margin-top:var(--space-2);font-size:11px;opacity:.5;">Enter HSA contribution above to see after-tax savings.</div>` : ''}
   `;
 
   renderTop3(tier, usage);
